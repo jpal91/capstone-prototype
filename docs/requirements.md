@@ -1,0 +1,48 @@
+# Requirements — Portable Mortgage Pre-Application Prototype
+
+**Status:** first draft (week 1). Expected to change, but only on purpose.
+
+This is the single list of requirement IDs used by the paper (Ch. 4 defines them, Ch. 7 shows them, Ch. 8 reports results), the code, and the `eval/` suite (each scenario is tagged with the ID it verifies). Section numbers in "Source" refer to `paper_outline.md` at the repository root.
+
+**Rules**
+
+- IDs are permanent. Never renumber; if a requirement is dropped, mark it **Retired** and leave the row.
+- Every row is either verified by `eval/` or reported in the paper as unverified.
+- Priority **Core** = must ship for Ch. 7–8 to work. **Cut line** = first to drop if the schedule slips (drop in this order: FR-09 notification, FR-10 lender view, NFR-05 encryption at rest).
+
+## Functional requirements
+
+| ID | Requirement | Source | Satisfied by | Verified by | Priority |
+|---|---|---|---|---|---|
+| FR-01 | The borrower can create, edit, and save a draft covering the supported URLA subset: borrower information, current address, employment and income, assets, liabilities, and property and loan information. | §4.1 | `portal` /borrower, `core` drafts | Scenario creates and updates a draft | Core |
+| FR-02 | Finalizing a draft produces an immutable version: MISMO v3.4/ULAD XML stored with its SHA-256 hash. Editing afterward creates a new version and never changes an existing one. | §2.2, §6.2 | `core` versions, `mismo` mapper | Finalize twice; first version's bytes and hash unchanged | Core |
+| FR-03 | Every finalized version validates against the MISMO v3.4 + ULAD XSD, so a lender receives the file format its systems already import. | §2.2 | `mismo` validation | `xmlschema` validation of every emitted file | Core |
+| FR-04 | Emitted XML round-trips: parsing it back yields the same field values as the source draft. | §2.2, §5.2 | `mismo` mapper + bindings | Parse emitted XML, compare to draft | Core |
+| FR-05 | The borrower can grant a specific lender access to a specific version, with an expiry. | §2.3.2, §2.3.4 | `core` grants, `portal` consent screen | Grant A and B, not C; C is denied | Core |
+| FR-06 | The borrower can revoke any grant independently; other grants are unaffected. | §2.3.2, §2.3.4 | `core` grants | Revoke A; A denied, B still allowed | Core |
+| FR-07 | A lender can fetch an application only with a grant that is its own, not revoked, and not expired. The response is exactly the bound version's bytes (hash matches). | §2.3.2, §5.4, §6.2 | `core` lender API | Consent matrix: own/other lender × active/revoked/expired; hash check on success | Core |
+| FR-08 | The borrower can see every grant's status and when each lender last fetched. | §2.3.4 | `core` grants + audit, `portal` | Scenario reads grant list after fetches | Core |
+| FR-09 | When a grant is created, the lender receives a notification that carries no application data. | §5.4 | `core` → `mock-lender` webhook | Notification received; payload has no application fields | Cut line |
+| FR-10 | A demo lender view shows what each mock lender has received and its current access status. | §7.2 | `portal` /lender, `mock-lender` | Screenshot (Ch. 7); not automated | Cut line |
+
+## Non-functional and security requirements
+
+| ID | Requirement | Source | Satisfied by | Verified by | Priority |
+|---|---|---|---|---|---|
+| NFR-01 | The SSN / taxpayer identifier is never collected, stored, or emitted. | §4.4, §6.2, §6.3 | Form scope, data model | No such field in the draft API; no taxpayer identifier in any emitted XML | Core |
+| NFR-02 | HMDA demographic information is not collected. | §4.4, §6.3 | Form scope | No such fields in the draft API or emitted XML | Core |
+| NFR-03 | Each lender authenticates with its own credentials; one lender's credentials cannot read another lender's grants. | §6.1 | `core` lender auth | Lender B uses its credentials on Lender A's grant → denied | Core |
+| NFR-04 | Every finalize, grant, revoke, fetch, and denied fetch adds an entry to an append-only audit log in which each entry stores the previous entry's hash; the chain verifies end to end. | §6.2, §6.4 | `core` audit | Run scenario, check entry count per action, verify chain; tamper with one row → verification fails | Core |
+| NFR-05 | Stored version XML is encrypted at rest with a key supplied through the environment. | §6.4 | `core` storage | Raw database column is not readable XML; fetch still returns the original bytes | Cut line |
+| NFR-06 | All data is synthetic. | `AGENTS.md` guardrails | `seed` | Review; not automated | Core |
+| NFR-07 | The whole system starts with `docker compose up --build` and is removed with `docker compose down -v`; `eval/` runs in the same environment. | §3.3, §7 | `compose.yaml` | The eval run itself | Core |
+
+## Known limitations to demonstrate (not requirements — expected outcomes)
+
+These are things the design intentionally does *not* do. `eval/` should show each one happening so the paper can report it honestly (§6.1, §8.4, §10.1).
+
+| ID | Limitation | Source | Shown by |
+|---|---|---|---|
+| L-01 | Revocation stops future fetches but cannot take back a copy a lender already fetched. | §5.4, §6.1 | After revoking A, `mock-lender` still holds A's earlier copy |
+| L-02 | Output is XSD-valid but not DU-submittable, because the SSN is absent. | §4.4, §10.1 | Note alongside FR-03 results; check against the DU spec once the bindings are generated |
+| L-03 | Single borrower only; no co-borrower. | §10.1 | Scope statement; not automated |
