@@ -8,3 +8,8 @@ dependencies = []
 members = [
     "core",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.10",
+]
