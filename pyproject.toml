@@ -13,3 +13,7 @@ members = [
 dev = [
     "ruff>=0.16.10",
 ]
+
+[tool.ruff]
+# Where first-party packages live, for import sorting.
+src = ["core/src"]

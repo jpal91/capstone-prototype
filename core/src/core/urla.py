@@ -6,9 +6,14 @@ There are two versions of each model:
   optional, so a half-finished application can be saved at any point (FR-01).
 - The strict models (``Urla`` and the models it contains) describe a complete
   pre-application. Finalizing validates a draft against them before the MISMO
-  mapper runs: ``Urla.model_validate(draft.model_dump(exclude_none=True))``.
+  mapper runs::
+
+      Urla.model_validate(draft.model_dump(by_alias=True, exclude_none=True))
+
   Field names are the same in both, so a failed validation lists exactly
-  what is still missing.
+  what is still missing. Dumping by alias keeps every error location in the
+  camelCase the portal sent; dropping ``None`` reports empty fields as
+  missing rather than as the wrong type.
 
 All models share ``UrlaModel``'s configuration:
 
