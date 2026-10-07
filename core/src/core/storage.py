@@ -30,8 +30,8 @@ class Application(Base):
     borrower_id: Mapped[int] = mapped_column(ForeignKey("borrower.id"), unique=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default_factory=func.now,
-        onupdate=func.now,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
     borrower: Mapped["Borrower"] = relationship(back_populates="application")
