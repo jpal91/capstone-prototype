@@ -1,0 +1,55 @@
+# --- MISMO (license-restricted; see AGENTS.md) ---
+# Schema files, wherever they end up
+mismo/schema/
+*.xsd
+# xsdata output: generate bindings into a folder named _generated/
+**/_generated/
+
+# --- Secrets and environment ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# --- Local data ---
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+compose.override.yaml
+
+# --- Python ---
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- JavaScript / Next.js (portal) ---
+node_modules/
+.next/
+out/
+.pnpm-store/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+npm-debug.log*
+pnpm-debug.log*
+# pnpm only: keep other package managers' lockfiles out
+package-lock.json
+yarn.lock
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
