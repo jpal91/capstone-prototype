@@ -201,8 +201,6 @@ version = "0.1.0"
 source = { editable = "core" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
-    { name = "pydantic", extra = ["email"] },
-    { name = "pydantic-extra-types", extra = ["phonenumbers"] },
     { name = "sqlalchemy" },
 ]
 
@@ -214,8 +212,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.142.2" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.13.5" },
-    { name = "pydantic-extra-types", extras = ["phonenumbers"], specifier = ">=2.11.1" },
     { name = "sqlalchemy", specifier = ">=2.1.4" },
 ]
 
@@ -738,11 +734,17 @@ name = "mismo"
 version = "0.1.0"
 source = { editable = "mismo" }
 dependencies = [
+    { name = "pydantic", extra = ["email"] },
+    { name = "pydantic-extra-types", extra = ["phonenumbers"] },
     { name = "xsdata", extra = ["cli", "lxml"] },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "xsdata", extras = ["cli", "lxml"], specifier = ">=26.10" }]
+requires-dist = [
+    { name = "pydantic", extras = ["email"], specifier = ">=2.13.5" },
+    { name = "pydantic-extra-types", extras = ["phonenumbers"], specifier = ">=2.11.1" },
+    { name = "xsdata", extras = ["cli", "lxml"], specifier = ">=26.10" },
+]
 
 [[package]]
 name = "opentelemetry-api"

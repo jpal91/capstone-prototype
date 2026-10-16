@@ -16,7 +16,7 @@ This is the single list of requirement IDs used by the paper (Ch. 4 defines them
 |---|---|---|---|---|---|
 | FR-01 | The borrower can create, edit, and save a draft covering the supported URLA subset: borrower information, current address, employment and income, assets, liabilities, and property and loan information. | §4.1 | `portal` /borrower, `core` drafts | Scenario creates and updates a draft | Core |
 | FR-02 | Finalizing a draft produces an immutable version: MISMO v3.4 XML stored with its SHA-256 hash. Editing afterward creates a new version and never changes an existing one. | §2.2, §6.2 | `core` versions, `mismo` mapper | Finalize twice; first version's bytes and hash unchanged | Core |
-| FR-03 | Every finalized version validates against the MISMO v3.4 (Build 324) Reference Model XSD, the base that the ULAD and DU formats extend, so a lender receives the format its systems already import. | §2.2 | `mismo` validation | `xmlschema` validation of every emitted file | Core |
+| FR-03 | Every finalized version validates against Fannie Mae's DU wrapper schema for MISMO v3.4 (Build 324), so a lender receives the format its systems already import. | §2.2 | `mismo` validation | XSD validation of every emitted file against the staged DU wrapper | Core |
 | FR-04 | Emitted XML round-trips: parsing it back yields the same field values as the source draft. | §2.2, §5.2 | `mismo` mapper + bindings | Parse emitted XML, compare to draft | Core |
 | FR-05 | The borrower can grant a specific lender access to a specific version, with an expiry. | §2.3.2, §2.3.4 | `core` grants, `portal` consent screen | Grant A and B, not C; C is denied | Core |
 | FR-06 | The borrower can revoke any grant independently; other grants are unaffected. | §2.3.2, §2.3.4 | `core` grants | Revoke A; A denied, B still allowed | Core |
@@ -44,5 +44,5 @@ These are things the design intentionally does *not* do. `eval/` should show eac
 | ID | Limitation | Source | Shown by |
 |---|---|---|---|
 | L-01 | Revocation stops future fetches but cannot take back a copy a lender already fetched. | §5.4, §6.1 | After revoking A, `mock-lender` still holds A's earlier copy |
-| L-02 | Output is XSD-valid but not DU-submittable: the SSN is absent, and it is validated against the base MISMO v3.4 schema only, not the ULAD/DU extensions. | §4.4, §10.1 | Note alongside FR-03 results |
+| L-02 | Output is valid against the DU schema but not DU-submittable: the SSN is absent, and no ULAD/DU extension data (e.g., HMDA demographics, which NFR-02 excludes) is emitted. | §4.4, §10.1 | Note alongside FR-03 results |
 | L-03 | Single borrower only; no co-borrower. | §10.1 | Scope statement; not automated |

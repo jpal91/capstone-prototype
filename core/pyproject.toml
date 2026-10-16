@@ -9,8 +9,6 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.142.2",
-    "pydantic-extra-types[phonenumbers]>=2.11.1",
-    "pydantic[email]>=2.13.5",
     "sqlalchemy>=2.1.4",
 ]
 
