@@ -2,8 +2,8 @@
 # Schema files, wherever they end up
 mismo/schema/
 *.xsd
-# xsdata output: generate bindings into a folder named _generated/
-**/_generated/
+# xsdata output (xsdata strips a leading underscore, so the package is mismo.generated)
+mismo/src/mismo/generated/
 
 # --- Secrets and environment ---
 .env

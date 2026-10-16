@@ -7,7 +7,9 @@ authors = [
     { name = "Justin Pallansch", email = "pallanschja@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "xsdata[cli,lxml]>=26.10",
+]
 
 [project.scripts]
 mismo = "mismo:main"
