@@ -92,6 +92,7 @@ class USPhone(PhoneNumber):
     """Phone number; US is assumed when no country code is given. Stored as E.164."""
 
     default_region_code = "US"
+    supported_regions = ["US"]  # noqa RUF012
     phone_format = "E164"
 
 
@@ -226,6 +227,23 @@ class SubjectProperty(UrlaModel):
     @property
     def has_address(self) -> bool:
         return self.street_address is not None
+
+    @property
+    def address(self) -> Address | None:
+        """The address as an ``Address``, or None if it was left empty ("TBD")."""
+        if (
+            self.street_address is None
+            or self.city is None
+            or self.state is None
+            or self.zip_code is None
+        ):
+            return None
+        return Address(
+            street_address=self.street_address,
+            city=self.city,
+            state=self.state,
+            zip_code=self.zip_code,
+        )
 
     @model_validator(mode="after")
     def address_all_or_nothing(self) -> Self:

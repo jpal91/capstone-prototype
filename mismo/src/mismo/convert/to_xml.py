@@ -1,10 +1,9 @@
-from decimal import Decimal
+from lxml import etree  # ty: ignore
+from xsdata.formats.dataclass.serializers.tree import TreeSerializer
 
 from ..generated import (
     Address,
     Amortization,
-    AmortizationBase,
-    AmortizationEnum,
     AmortizationRule,
     Asset,
     AssetBase,
@@ -56,8 +55,6 @@ from ..generated import (
     LiabilityDetail,
     LiabilityEnum,
     LiabilityHolder,
-    LienPriorityBase,
-    LienPriorityEnum,
     Loan,
     LoanAmortizationPeriodBase,
     LoanAmortizationPeriodEnum,
@@ -73,7 +70,6 @@ from ..generated import (
     Mismodate,
     Mismoindicator,
     MismonumericString,
-    Mismopercent,
     Mismostring,
     Mismovalue,
     MortgageBase,
@@ -90,6 +86,8 @@ from ..generated import (
     PropertyValuation,
     PropertyValuationDetail,
     PropertyValuations,
+    Relationship,
+    Relationships,
     Residence,
     ResidenceDetail,
     Residences,
@@ -101,18 +99,31 @@ from ..generated import (
     SalesContracts,
     TermsOfLoan,
 )
-from ..urla import AssetType, LiabilityType, LoanProgram, Occupancy, OwnStatus, Urla
+from ..urla import Address as UrlaAddress
+from ..urla import (
+    AssetType,
+    LiabilityType,
+    LoanProgram,
+    LoanPurpose,
+    Occupancy,
+    OwnStatus,
+    Urla,
+)
+
+
+def mismo_address(a: UrlaAddress) -> Address:
+    return Address(
+        address_line_text=Mismostring(value=a.street_address),
+        city_name=Mismostring(value=a.city),
+        postal_code=Mismocode(value=a.zip_code.replace("-", "")),
+        state_code=Mismocode(value=a.state),
+    )
 
 
 def borrower_residence(urla: Urla) -> Residences:
     address = urla.address
     residence = Residence(
-        address=Address(
-            address_line_text=Mismostring(value=address.street_address),
-            city_name=Mismostring(value=address.city),
-            postal_code=Mismocode(value=address.zip_code),
-            state_code=Mismocode(value=address.state),
-        ),
+        address=mismo_address(address),
         residence_detail=ResidenceDetail(
             borrower_residency_basis_type=BorrowerResidencyBasisEnum(
                 value=BorrowerResidencyBasisBase.RENT
@@ -135,22 +146,24 @@ def borrower_residence(urla: Urla) -> Residences:
 def borrower_employer(urla: Urla) -> Employers:
     urla_inc = urla.income
     employer = Employer(
+        sequence_number=1,
+        label="EMPLOYER_1",
         legal_entity=LegalEntity(
             legal_entity_detail=LegalEntityDetail(
                 full_name=Mismostring(value=urla_inc.employer_name)
             )
         ),
         employment=Employment(
-            employment_start_date=Mismodate(
-                value=urla_inc.start_date.strftime("%Y-%m-%d")
-            ),
+            employment_start_date=Mismodate(value=urla_inc.start_date.isoformat()),
             employment_status_type=EmploymentStatusEnum(
                 value=EmploymentStatusBase.CURRENT
             ),
             employment_classification_type=EmploymentClassificationEnum(
                 value=EmploymentClassificationBase.PRIMARY
             ),
-            employment_position_description=Mismostring(value=urla_inc.position or ""),
+            employment_position_description=Mismostring(value=urla_inc.position)
+            if urla_inc.position
+            else None,
         ),
     )
     employers = Employers(employer=[employer])
@@ -182,9 +195,7 @@ def borrower_role(urla: Urla) -> Role:
 
     borrower = Borrower(
         borrower_detail=BorrowerDetail(
-            borrower_birth_date=Mismodate(
-                value=urla_bwr.date_of_birth.strftime("%Y-%m-%d")
-            )
+            borrower_birth_date=Mismodate(value=urla_bwr.date_of_birth.isoformat())
         ),
         employers=borrower_employer(urla),
         residences=borrower_residence(urla),
@@ -220,7 +231,7 @@ def borrower_parties(urla: Urla) -> Parties:
         ContactPoint(
             contact_point_telephone=ContactPointTelephone(
                 contact_point_telephone_value=MismonumericString(
-                    value=borrower.phone_number
+                    value=borrower.phone_number.removeprefix("+1")
                 )
             )
         )
@@ -236,7 +247,9 @@ def borrower_parties(urla: Urla) -> Parties:
             ),
             contact_points=ContactPoints(
                 contact_point=[c for c in [cp_email, cp_phone] if c is not None]
-            ),
+            )
+            if cp_phone or cp_email
+            else None,
         ),
         roles=Roles(role=[borrower_role(urla)]),
     )
@@ -244,20 +257,21 @@ def borrower_parties(urla: Urla) -> Parties:
     return Parties(party=[party])
 
 
+ASSET_TYPES = {
+    AssetType.Checking: AssetBase.CHECKING_ACCOUNT,
+    AssetType.Savings: AssetBase.SAVINGS_ACCOUNT,
+    AssetType.Retirement: AssetBase.RETIREMENT_FUND,
+}
+
+
 def asset_type(at: AssetType) -> AssetEnum:
-    value = None
-    match at:
-        case AssetType.Checking:
-            value = AssetBase.CHECKING_ACCOUNT
-        case AssetType.Retirement:
-            value = AssetBase.RETIREMENT_FUND
-        case AssetType.Savings:
-            value = AssetBase.SAVINGS_ACCOUNT
-
-    return AssetEnum(value=value)
+    return AssetEnum(value=ASSET_TYPES[at])
 
 
-def borrower_assets(urla: Urla) -> Assets:
+def borrower_assets(urla: Urla) -> Assets | None:
+    if not urla.assets:
+        return None
+
     asset_list = [
         Asset(
             sequence_number=i + 1,
@@ -292,17 +306,11 @@ def property_usage(occ: Occupancy) -> PropertyUsageEnum:
 
 def borrower_collateral(urla: Urla) -> Collaterals:
     sp = urla.subject_property
+    address = sp.address
 
     collateral = Collateral(
         subject_property=Property(
-            address=Address(
-                address_line_text=Mismostring(value=sp.street_address)
-                if sp.street_address
-                else None,
-                city_name=Mismostring(value=sp.city) if sp.city else None,
-                state_code=Mismocode(value=sp.state) if sp.state else None,
-                postal_code=Mismocode(value=sp.zip_code) if sp.zip_code else None,
-            ),
+            address=mismo_address(address) if address else None,
             property_detail=PropertyDetail(
                 property_usage_type=property_usage(sp.occupancy)
             ),
@@ -325,7 +333,9 @@ def borrower_collateral(urla: Urla) -> Collaterals:
                         )
                     )
                 ]
-            ),
+            )
+            if urla.loan.loan_purpose == LoanPurpose.Purchase
+            else None,
         )
     )
 
@@ -350,19 +360,20 @@ def liability_type(lt: LiabilityType) -> LiabilityEnum:
     return LiabilityEnum(value=value)
 
 
-def borrower_liabilities(urla: Urla) -> Liabilities:
+def borrower_liabilities(urla: Urla) -> Liabilities | None:
+    if not urla.liabilities:
+        return None
+
     liability_list = [
         Liability(
             sequence_number=i + 1,
             label=f"LIABILITY_{i + 1}",
             liability_detail=LiabilityDetail(
-                liability_exclusion_indicator=Mismoindicator(value=False),
                 liability_monthly_payment_amount=Mismoamount(value=l.monthly_amount),
-                liability_payoff_status_indicator=Mismoindicator(value=False),
                 liability_remaining_term_months_count=Mismocount(
                     value=l.months_remaining
                 )
-                if l.months_remaining
+                if l.months_remaining is not None
                 else None,
                 liability_type=liability_type(l.liability_type),
                 liability_unpaid_balance_amount=Mismoamount(value=l.balance),
@@ -391,12 +402,40 @@ def mortgage_type(lp: LoanProgram) -> MortgageEnum:
 
 def borrower_loans(urla: Urla) -> Loans:
     l_info = urla.loan
+    subject = urla.subject_property
+    housing_expense = []
+
+    if subject.monthly_hoi is not None:
+        housing_expense.append(
+            HousingExpense(
+                housing_expense_payment_amount=Mismoamount(value=subject.monthly_hoi),
+                housing_expense_timing_type=HousingExpenseTimingEnum(
+                    value=HousingExpenseTimingBase.PROPOSED
+                ),
+                housing_expense_type=HousingExpenseEnum(
+                    value=HousingExpenseBase.HOMEOWNERS_INSURANCE
+                ),
+            )
+        )
+
+    if subject.monthly_taxes is not None:
+        housing_expense.append(
+            HousingExpense(
+                housing_expense_payment_amount=Mismoamount(value=subject.monthly_taxes),
+                housing_expense_timing_type=HousingExpenseTimingEnum(
+                    value=HousingExpenseTimingBase.PROPOSED
+                ),
+                housing_expense_type=HousingExpenseEnum(
+                    value=HousingExpenseBase.REAL_ESTATE_TAX
+                ),
+            )
+        )
+
     loan = Loan(
         loan_role_type=LoanRoleBase.SUBJECT_LOAN,
         label="LOAN_1",
         amortization=Amortization(
             amortization_rule=AmortizationRule(
-                amortization_type=AmortizationEnum(value=AmortizationBase.FIXED),
                 loan_amortization_period_count=Mismocount(
                     value=l_info.loan_term_months
                 ),
@@ -405,66 +444,73 @@ def borrower_loans(urla: Urla) -> Loans:
                 ),
             )
         ),
-        housing_expenses=HousingExpenses(
-            housing_expense=[
-                HousingExpense(
-                    housing_expense_payment_amount=None,
-                    housing_expense_timing_type=HousingExpenseTimingEnum(
-                        value=HousingExpenseTimingBase.PROPOSED
-                    ),
-                    housing_expense_type=HousingExpenseEnum(
-                        value=HousingExpenseBase.FIRST_MORTGAGE_PRINCIPAL_AND_INTEREST
-                    ),
-                )
-            ]
-        ),
+        housing_expenses=HousingExpenses(housing_expense=housing_expense)
+        if housing_expense
+        else None,
         loan_detail=LoanDetail(
             borrower_count=Mismocount(value=1),
-            balloon_indicator=Mismoindicator(value=False),
-            buydown_temporary_subsidy_funding_indicator=Mismoindicator(value=False),
-            construction_loan_indicator=Mismoindicator(value=False),
-            interest_only_indicator=Mismoindicator(value=False),
-            negative_amortization_indicator=Mismoindicator(value=False),
-            prepayment_penalty_indicator=Mismoindicator(value=False),
             total_mortgaged_properties_count=Mismocount(value=1),
         ),
         terms_of_loan=TermsOfLoan(
             base_loan_amount=Mismoamount(value=l_info.loan_amount),
-            lien_priority_type=LienPriorityEnum(value=LienPriorityBase.FIRST_LIEN),
             loan_purpose_type=LoanPurposeEnum(
-                value=LoanPurposeBase.PURCHASE,
+                value=LoanPurposeBase.PURCHASE
+                if l_info.loan_purpose == LoanPurpose.Purchase
+                else LoanPurposeBase.REFINANCE,
             ),
             mortgage_type=mortgage_type(l_info.loan_program),
-            note_rate_percent=Mismopercent(value=Decimal("7.00")),
         ),
     )
 
     return Loans(loan=[loan])
 
 
-from lxml import etree  # ty: ignore
-from xsdata.formats.dataclass.serializers.tree import TreeSerializer
+ARCROLE = "urn:fdc:mismo.org:2009:residential/{}"
+
+
+def relationships(urla: Urla) -> Relationships:
+    links = [
+        (f"ASSET_{i}", "BORROWER_1", "ASSET_IsAssociatedWith_ROLE")
+        for i in range(1, len(urla.assets) + 1)
+    ]
+    links += [
+        (f"LIABILITY_{i}", "BORROWER_1", "LIABILITY_IsAssociatedWith_ROLE")
+        for i in range(1, len(urla.liabilities) + 1)
+    ]
+    links.append((
+        "CURRENT_INCOME_ITEM_1",
+        "EMPLOYER_1",
+        "CURRENT_INCOME_ITEM_IsAssociatedWith_EMPLOYER",
+    ))
+    return Relationships(
+        relationship=[
+            Relationship(
+                sequence_number=n, from_value=src, to=dst, arcrole=ARCROLE.format(role)
+            )
+            for n, (src, dst, role) in enumerate(links, start=1)
+        ]
+    )
+
 
 MISMO_NS = "http://www.mismo.org/residential/2009/schemas"
 XSI_NIL = "{http://www.w3.org/2001/XMLSchema-instance}nil"
 
 
-def to_xml(urla: Urla):
+def to_xml(urla: Urla) -> bytes:
     deal = Deal(
         assets=borrower_assets(urla),
         collaterals=borrower_collateral(urla),
         liabilities=borrower_liabilities(urla),
         loans=borrower_loans(urla),
         parties=borrower_parties(urla),
+        relationships=relationships(urla),
     )
 
     root = Message(deal_sets=DealSets(deal_set=[DealSet(deals=Deals(deal=[deal]))]))
 
-    # config = SerializerConfig(indent="  ")
-    # context = XmlContext()
-    # serializer = XmlSerializer(context=context, config=config)
-
-    tree = TreeSerializer().render(root, ns_map={None: MISMO_NS})
+    tree = TreeSerializer().render(
+        root, ns_map={None: MISMO_NS, "xlink": "http://www.w3.org/1999/xlink"}
+    )
 
     for el in [e for e in tree.iter() if e.get(XSI_NIL) == "true"]:
         el.getparent().remove(el)
