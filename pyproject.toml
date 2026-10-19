@@ -17,4 +17,4 @@ dev = [
 
 [tool.ruff]
 # Where first-party packages live, for import sorting.
-src = ["core/src"]
+src = ["core/src", "mismo/src"]

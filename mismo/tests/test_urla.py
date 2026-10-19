@@ -7,11 +7,12 @@ eval/.
 
 import copy
 from decimal import Decimal
+from typing import Any
 
 import pytest
 from pydantic import ValidationError
 
-from core.urla import Urla, UrlaDraft
+from mismo.urla import Urla, UrlaDraft
 
 # Synthetic data only (NFR-06).
 COMPLETE = {
@@ -73,7 +74,7 @@ SUBJECT_ADDRESS = {
 
 def complete(**changes: dict) -> dict:
     """A copy of COMPLETE with the given sections updated."""
-    payload = copy.deepcopy(COMPLETE)
+    payload: dict[str, Any] = copy.deepcopy(COMPLETE)
     for section, values in changes.items():
         payload[section].update(values)
     return payload
@@ -266,7 +267,7 @@ def test_empty_asset_and_liability_lists_allowed():
 
 
 def test_optional_fields_may_be_missing():
-    payload = copy.deepcopy(COMPLETE)
+    payload: dict[str, Any] = copy.deepcopy(COMPLETE)
     del payload["borrower"]["phoneNumber"]
     del payload["borrower"]["email"]
     del payload["income"]["position"]
@@ -313,7 +314,7 @@ def test_refinance_with_subject_address_finalizes():
 
 
 def test_installment_requires_months_remaining():
-    payload = copy.deepcopy(COMPLETE)
+    payload: dict[str, Any] = copy.deepcopy(COMPLETE)
     payload["liabilities"][0]["liabilityType"] = "Installment"
     with pytest.raises(ValidationError) as exc:
         finalize(payload)
@@ -325,6 +326,6 @@ def test_installment_requires_months_remaining():
 
 @pytest.mark.parametrize("liability_type", ["Revolving", "Open30Day", "Lease", "Other"])
 def test_other_liabilities_do_not_need_months_remaining(liability_type):
-    payload = copy.deepcopy(COMPLETE)
+    payload: dict[str, Any] = copy.deepcopy(COMPLETE)
     payload["liabilities"][0]["liabilityType"] = liability_type
     finalize(payload)
