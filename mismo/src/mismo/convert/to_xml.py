@@ -1,3 +1,20 @@
+"""Map a finalized ``Urla`` onto a MISMO v3.4 ``MESSAGE`` (FR-02, FR-03).
+
+Each builder fills one MISMO container from one part of the URLA; ``to_xml``
+assembles them into a single ``DEAL`` and serializes it. Placement follows
+Fannie Mae's DU Specification test cases.
+
+Only what the borrower entered is emitted, plus the structural values MISMO
+needs to place it (party role, loan role, residency type, income type). No
+SSN or HMDA data exists to emit (NFR-01, NFR-02), so the output validates
+against the DU wrapper schema but is not DU-submittable (L-02).
+
+The XML is linked with xlink labels: the builders label each asset,
+liability, income item, employer, and the borrower role, and
+``relationships`` connects them. The XSD does not check that the labels
+match, so the tests do.
+"""
+
 from lxml import etree  # ty: ignore
 from xsdata.formats.dataclass.serializers.tree import TreeSerializer
 
@@ -112,6 +129,7 @@ from ..urla import (
 
 
 def mismo_address(a: UrlaAddress) -> Address:
+    """An ``ADDRESS``. ZIP+4 loses its hyphen, as in the DU test cases."""
     return Address(
         address_line_text=Mismostring(value=a.street_address),
         city_name=Mismostring(value=a.city),
@@ -121,6 +139,7 @@ def mismo_address(a: UrlaAddress) -> Address:
 
 
 def borrower_residence(urla: Urla) -> Residences:
+    """1a. Current address, housing, and time there: the borrower's ``RESIDENCES``."""
     address = urla.address
     residence = Residence(
         address=mismo_address(address),
@@ -144,6 +163,7 @@ def borrower_residence(urla: Urla) -> Residences:
 
 
 def borrower_employer(urla: Urla) -> Employers:
+    """1b. Current employer: the borrower's ``EMPLOYERS``, labelled ``EMPLOYER_1``."""
     urla_inc = urla.income
     employer = Employer(
         sequence_number=1,
@@ -172,6 +192,7 @@ def borrower_employer(urla: Urla) -> Employers:
 
 
 def borrower_income(urla: Urla) -> CurrentIncome:
+    """1b. Monthly base income from that employer: ``CURRENT_INCOME``."""
     urla_inc = urla.income
     current_income = CurrentIncomeItem(
         sequence_number=1,
@@ -191,6 +212,7 @@ def borrower_income(urla: Urla) -> CurrentIncome:
 
 
 def borrower_role(urla: Urla) -> Role:
+    """The borrower ``ROLE`` (``BORROWER_1``), which holds the 1a and 1b data."""
     urla_bwr = urla.borrower
 
     borrower = Borrower(
@@ -215,6 +237,11 @@ def borrower_role(urla: Urla) -> Role:
 
 
 def borrower_parties(urla: Urla) -> Parties:
+    """1a. Name and contact details: the borrower's ``PARTY``.
+
+    MISMO allows only digits in a phone number, so the ``+1`` is dropped.
+    ``USPhone`` accepts only US numbers, so it can be restored on parsing.
+    """
     borrower = urla.borrower
 
     cp_email = (
@@ -265,10 +292,12 @@ ASSET_TYPES = {
 
 
 def asset_type(at: AssetType) -> AssetEnum:
+    """The MISMO ``AssetType`` for a URLA asset type."""
     return AssetEnum(value=ASSET_TYPES[at])
 
 
 def borrower_assets(urla: Urla) -> Assets | None:
+    """2a. Accounts: ``ASSETS``, labelled ``ASSET_1`` onward. None if there are none."""
     if not urla.assets:
         return None
 
@@ -291,6 +320,7 @@ def borrower_assets(urla: Urla) -> Assets | None:
 
 
 def property_usage(occ: Occupancy) -> PropertyUsageEnum:
+    """The MISMO ``PropertyUsageType`` for an occupancy."""
     value = None
 
     match occ:
@@ -305,6 +335,11 @@ def property_usage(occ: Occupancy) -> PropertyUsageEnum:
 
 
 def borrower_collateral(urla: Urla) -> Collaterals:
+    """4a. The subject property: ``COLLATERALS``.
+
+    The URLA subset has one property value, so a purchase also reports it as
+    the sales contract amount. A refinance has no sales contract.
+    """
     sp = urla.subject_property
     address = sp.address
 
@@ -343,6 +378,7 @@ def borrower_collateral(urla: Urla) -> Collaterals:
 
 
 def liability_type(lt: LiabilityType) -> LiabilityEnum:
+    """The MISMO ``LiabilityType`` for a URLA liability type."""
     value = None
 
     match lt:
@@ -361,6 +397,7 @@ def liability_type(lt: LiabilityType) -> LiabilityEnum:
 
 
 def borrower_liabilities(urla: Urla) -> Liabilities | None:
+    """2c. Debts: ``LIABILITIES``, labelled ``LIABILITY_1`` onward. None if none."""
     if not urla.liabilities:
         return None
 
@@ -389,6 +426,7 @@ def borrower_liabilities(urla: Urla) -> Liabilities | None:
 
 
 def mortgage_type(lp: LoanProgram) -> MortgageEnum:
+    """The MISMO ``MortgageType`` for a loan program."""
     value = None
 
     match lp:
@@ -401,6 +439,10 @@ def mortgage_type(lp: LoanProgram) -> MortgageEnum:
 
 
 def borrower_loans(urla: Urla) -> Loans:
+    """4a and L3. The subject ``LOAN``: amount, purpose, mortgage type, term.
+
+    Proposed taxes and insurance from 4a become ``HOUSING_EXPENSES``.
+    """
     l_info = urla.loan
     subject = urla.subject_property
     housing_expense = []
@@ -469,6 +511,9 @@ ARCROLE = "urn:fdc:mismo.org:2009:residential/{}"
 
 
 def relationships(urla: Urla) -> Relationships:
+    """``RELATIONSHIPS`` linking each asset and liability to the borrower role,
+    and the income item to its employer, using the builders' labels.
+    """
     links = [
         (f"ASSET_{i}", "BORROWER_1", "ASSET_IsAssociatedWith_ROLE")
         for i in range(1, len(urla.assets) + 1)
@@ -497,6 +542,12 @@ XSI_NIL = "{http://www.w3.org/2001/XMLSchema-instance}nil"
 
 
 def to_xml(urla: Urla) -> bytes:
+    """Serialize a finalized application as UTF-8 MISMO XML.
+
+    xsdata writes every unset nillable element as ``xsi:nil``. Those are
+    removed: they would claim a value is deliberately empty, and in a
+    choice (such as fax or telephone) they make the document invalid.
+    """
     deal = Deal(
         assets=borrower_assets(urla),
         collaterals=borrower_collateral(urla),

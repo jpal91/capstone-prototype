@@ -740,6 +740,11 @@ dependencies = [
     { name = "xsdata", extra = ["cli", "lxml"] },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "lxml", specifier = ">=6.1.3" },
@@ -747,6 +752,9 @@ requires-dist = [
     { name = "pydantic-extra-types", extras = ["phonenumbers"], specifier = ">=2.11.1" },
     { name = "xsdata", extras = ["cli", "lxml"], specifier = ">=26.10" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.1.1" }]
 
 [[package]]
 name = "opentelemetry-api"
