@@ -11,62 +11,13 @@ eval/.
 
 import pytest
 from lxml import etree  # ty: ignore
+from synthetic import application
 
 from mismo.convert import to_xml
 from mismo.urla import Urla
 
 XLINK = "{http://www.w3.org/1999/xlink}"
 ARCROLE_PREFIX = "urn:fdc:mismo.org:2009:residential/"
-
-# Synthetic data only (NFR-06).
-BASE = {
-    "borrower": {
-        "firstName": "Alex",
-        "lastName": "Example",
-        "dateOfBirth": "1990-01-01",
-    },
-    "address": {
-        "streetAddress": "100 Example Ave",
-        "city": "Tucson",
-        "state": "AZ",
-        "zipCode": "85701",
-        "ownStatus": "Rent",
-        "monthsAtAddress": 24,
-    },
-    "subjectProperty": {
-        "propertyValue": "350000.00",
-        "occupancy": "PrimaryResidence",
-    },
-    "income": {
-        "employerName": "Example Corp",
-        "monthlyIncome": "6000.00",
-        "startDate": "2020-05-01",
-    },
-    "loan": {
-        "loanTermMonths": 360,
-        "loanProgram": "Conventional",
-        "loanAmount": "280000.00",
-        "loanPurpose": "Purchase",
-    },
-}
-
-ASSET = {
-    "institutionName": "Example Bank",
-    "assetType": "Checking",
-    "amount": "1000.00",
-}
-LIABILITY = {
-    "institutionName": "Example Card",
-    "liabilityType": "Revolving",
-    "monthlyAmount": "50.00",
-    "balance": "900.00",
-}
-
-
-def application(assets: int, liabilities: int) -> Urla:
-    return Urla.model_validate(
-        {**BASE, "assets": [ASSET] * assets, "liabilities": [LIABILITY] * liabilities}
-    )
 
 
 def parse(urla: Urla) -> etree._Element:
