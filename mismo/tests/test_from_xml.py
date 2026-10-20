@@ -4,8 +4,8 @@
 holding something the URLA subset cannot represent is rejected with
 ``UnsupportedError`` instead of being mapped to the nearest value (L-03,
 L-04). Those cases are built by editing synthetic ``to_xml`` output, so they
-run without the DU test cases; the DU test cases, when downloaded, are checked
-as well.
+run without the DU test cases. When the DU test cases are downloaded, DI-C01
+must be read and every other case rejected cleanly.
 
 These are unit tests; the black-box checks that verify requirements live in
 eval/.
@@ -13,6 +13,7 @@ eval/.
 
 from collections.abc import Callable
 from copy import deepcopy
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -151,40 +152,78 @@ def test_missing_required_elements_are_named(name: str) -> None:
         from_xml(xml)
 
 
-# Fannie Mae's DU test cases: gitignored, so skipped when not downloaded. Each
-# uses something outside the subset, so each must be rejected by name.
+# Fannie Mae's DU test cases: gitignored, so skipped when not downloaded.
+# DI-C01 is within the subset apart from extra income items; every other case
+# uses something outside it.
 
 DU_CASES = (
     Path(__file__).parents[1]
     / "schema/DU Specification Test Case Suite October 2026/Updated XML Files"
 )
-DU_REASONS = {
-    "DI-C01": "AssetType",
-    "DI-C02": "co-borrower",
-    "DI-C03": "co-borrower",
-    "DI-C04": "co-borrower",
-    "DI-C05": "AssetType",
-    "DI-C06": "co-borrower",
-    "DI-C07": "AssetType",
-    "DI-C08": "co-borrower",
-    "DI-C09": "co-borrower",
-    "DI-CL01": "self-employment",
-    "DI-FHA01": "co-borrower",
-    "DI-FHA02": "AssetType",
-    "DI-FHA03": "BorrowerResidencyBasisType",
-    "DI-FHA04": "co-borrower",
-    "DI-VA01": "MortgageType",
-    "DI-VA02": "co-borrower",
-    "DI-VA03": "co-borrower",
-    "DI-VA04": "co-borrower",
-}
-DU_FILES = sorted(DU_CASES.glob("*.xml"))
+DU_FILES = {p.name.split("_")[0]: p for p in sorted(DU_CASES.glob("*.xml"))}
+NS = {"m": MISMO[1:-1]}
+
+needs_du = pytest.mark.skipif(not DU_FILES, reason="DU test cases not downloaded")
 
 
-@pytest.mark.skipif(not DU_FILES, reason="DU test cases not downloaded")
-@pytest.mark.parametrize(
-    "path", DU_FILES or [None], ids=lambda p: p.name.split("_")[0] if p else "none"
-)
-def test_du_test_cases_are_rejected_by_name(path: Path) -> None:
-    with pytest.raises(UnsupportedError, match=DU_REASONS[path.name.split("_")[0]]):
-        from_xml(path.read_bytes())
+def amounts(doc: etree._Element, path: str) -> list[Decimal]:
+    return [Decimal(e.text) for e in doc.iterfind(path, NS)]
+
+
+@needs_du
+def test_du_c01_is_read() -> None:
+    # Expected values are read from the file itself, so none are copied here.
+    raw = DU_FILES["DI-C01"].read_bytes()
+    doc = etree.fromstring(raw)
+    urla = from_xml(raw)
+
+    assert urla.borrower.first_name == doc.findtext(".//m:NAME/m:FirstName", None, NS)
+    assert urla.loan.loan_amount == Decimal(
+        doc.findtext(".//m:BaseLoanAmount", None, NS)
+    )
+    assert [a.amount for a in urla.assets] == amounts(
+        doc, ".//m:ASSET_DETAIL/m:AssetCashOrMarketValueAmount"
+    )
+    assert [l.balance for l in urla.liabilities] == amounts(
+        doc, ".//m:LIABILITY_DETAIL/m:LiabilityUnpaidBalanceAmount"
+    )
+
+    proposed = {
+        e.findtext("m:HousingExpenseType", None, NS): Decimal(
+            e.findtext("m:HousingExpensePaymentAmount", None, NS)
+        )
+        for e in doc.iterfind(".//m:HOUSING_EXPENSE", NS)
+        if e.findtext("m:HousingExpenseTimingType", None, NS) == "Proposed"
+    }
+    assert urla.subject_property.monthly_hoi == proposed["HomeownersInsurance"]
+    assert urla.subject_property.monthly_taxes == proposed["RealEstateTax"]
+
+    # Only base pay is imported; C01's other income items are ignored (L-04).
+    items = list(doc.iterfind(".//m:CURRENT_INCOME_ITEM_DETAIL", NS))
+    base = [i for i in items if i.findtext("m:IncomeType", None, NS) == "Base"]
+    assert len(base) == 1 < len(items)
+    assert urla.income.monthly_income == Decimal(
+        base[0].findtext("m:CurrentIncomeMonthlyTotalAmount", None, NS)
+    )
+
+
+@needs_du
+def test_du_c01_leaves_its_ssn_and_hmda_data_behind() -> None:
+    # C01 is a full application; what comes back out is a pre-application
+    # (NFR-01, NFR-02) that round-trips like any other.
+    raw = DU_FILES["DI-C01"].read_bytes()
+    urla = from_xml(raw)
+    xml = to_xml(urla)
+
+    assert b"TaxpayerIdentifier" in raw and b"HMDA" in raw
+    assert b"TaxpayerIdentifier" not in xml and b"HMDA" not in xml
+    assert from_xml(xml) == urla
+
+
+@needs_du
+@pytest.mark.parametrize("name", [n for n in DU_FILES if n != "DI-C01"] or ["none"])
+def test_other_du_cases_are_rejected_cleanly(name: str) -> None:
+    # Each uses something outside the subset. Any other error (MissingError,
+    # TypeError, ...) would mean a path assumption failed on real-world XML.
+    with pytest.raises(UnsupportedError):
+        from_xml(DU_FILES[name].read_bytes())

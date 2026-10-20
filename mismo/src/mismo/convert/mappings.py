@@ -30,6 +30,9 @@ ASSET_TYPES = {
     AssetType.Checking: AssetBase.CHECKING_ACCOUNT,
     AssetType.Savings: AssetBase.SAVINGS_ACCOUNT,
     AssetType.Retirement: AssetBase.RETIREMENT_FUND,
+    AssetType.CertificateOfDeposit: AssetBase.CERTIFICATE_OF_DEPOSIT_TIME_DEPOSIT,
+    AssetType.MutualFund: AssetBase.MUTUAL_FUND,
+    AssetType.Trust: AssetBase.TRUST_ACCOUNT,
 }
 
 LIABILITY_TYPES = {

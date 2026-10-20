@@ -39,6 +39,9 @@ group reference.
 6. **Reject, don't relabel:** `from_xml` raises `UnsupportedError` for
    anything outside the subset (a co-borrower, a gift of cash, a VA loan,
    self-employment income) instead of mapping it to the nearest URLA value.
+   One exception: income items other than base pay are ignored rather than
+   rejected, so a lender's file with overtime or dividends still imports, with
+   lower income (L-04).
 
 ## Alternatives rejected
 
@@ -73,3 +76,7 @@ group reference.
   code and must not be pushed to a public registry.
 - `from_xml` reads by position, which holds for `to_xml` output and for the
   DU test cases, but not necessarily for files from other systems.
+- Of Fannie Mae's 18 DU test cases, one (DI-C01) is within the subset apart
+  from its extra income items, and reads; the rest are rejected, each for
+  something outside the subset. DI-C01 needed three more URLA 2a account types
+  (certificate of deposit, mutual fund, trust account), which were added.

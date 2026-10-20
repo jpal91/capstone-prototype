@@ -16,7 +16,9 @@ assert from_xml(xml) == urla        # the round trip (FR-04)
 `from_xml` reads the single-borrower subset that `to_xml` emits. Anything
 outside it (a co-borrower, a gift of cash, a VA loan, self-employment income)
 raises `UnsupportedError` rather than being mapped to the nearest value; see
-L-03 and L-04 in [`docs/requirements.md`](../docs/requirements.md).
+L-03 and L-04 in [`docs/requirements.md`](../docs/requirements.md). The one
+exception is income: only base pay is imported, and other income items are
+ignored.
 
 ## Getting the schema
 
@@ -59,6 +61,8 @@ uv run pytest
 
 The tests use synthetic data only (`tests/synthetic.py`). If Fannie Mae's DU
 Specification test cases are unpacked in `mismo/schema/DU Specification Test
-Case Suite October 2026/`, `test_from_xml.py` also checks that each one is
-rejected for the right reason; otherwise that test is skipped. The
-validation tests are skipped when the schema has not been staged.
+Case Suite October 2026/`, `test_from_xml.py` also checks that DI-C01 is
+read (values compared with the file itself, SSN and HMDA data left behind)
+and that every other case is rejected with `UnsupportedError`; otherwise
+those tests are skipped. The validation tests are skipped when the schema has
+not been staged.

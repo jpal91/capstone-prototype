@@ -53,6 +53,9 @@ class AssetType(StrEnum):
     Checking = "Checking"
     Savings = "Savings"
     Retirement = "Retirement"
+    CertificateOfDeposit = "CertificateOfDeposit"
+    MutualFund = "MutualFund"
+    Trust = "Trust"
 
 
 class LiabilityType(StrEnum):

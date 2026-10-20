@@ -10,7 +10,13 @@ subject loan and current residence come first, as they do in the DU test cases.
 
 Values outside the subset raise ``UnsupportedError`` rather than being mapped
 to the nearest URLA value, e.g., a ``GiftOfCash`` asset, a VA loan, or
-self-employment income (L-04).
+self-employment income (L-04). One exception: income items other than base
+pay (overtime, bonus, dividends, ...) are ignored, so the borrower's income
+can import lower than the file states (L-04). Lender-calculated values such as
+the proposed principal and interest are ignored too.
+
+DU test case DI-C01 is read in full apart from those income items; the tests
+check it.
 """
 
 from datetime import date
@@ -228,13 +234,13 @@ def urla_income(borrower: Borrower) -> Income:
         employer, ["employment", "employment_position_description", "value"], str
     )
 
-    current_income_item = opt_access(
+    income_items = opt_access(
         borrower,
-        ["current_income", "current_income_items", "current_income_item", 0],
-        CurrentIncomeItem,
+        ["current_income", "current_income_items", "current_income_item"],
+        list[CurrentIncomeItem],
     )
 
-    if current_income_item is None:
+    if not income_items:
         # A 25%-or-more owner reports one monthly figure on the employer (L-04).
         self_employed = opt_access(
             employer,
@@ -246,17 +252,22 @@ def urla_income(borrower: Borrower) -> Income:
             raise UnsupportedError("unsupported income: self-employment")
         raise MissingError("missing element: CURRENT_INCOME_ITEM")
 
-    income_type = access(
-        current_income_item,
-        ["current_income_item_detail", "income_type", "value"],
-        IncomeBase,
-    )
+    # Only base pay is in the subset. Other items (overtime, bonus, dividends,
+    # ...) are ignored, so a lender's file can import with less income (L-04).
+    base = [
+        item
+        for item in income_items
+        if opt_access(
+            item, ["current_income_item_detail", "income_type", "value"], IncomeBase
+        )
+        == IncomeBase.BASE
+    ]
 
-    if income_type != IncomeBase.BASE:
-        raise UnsupportedError(f"unsupported IncomeType: {income_type}")
+    if not base:
+        raise UnsupportedError("unsupported IncomeType: no Base income item")
 
     income = access(
-        current_income_item,
+        base[0],
         ["current_income_item_detail", "current_income_monthly_total_amount", "value"],
         Decimal,
     )
