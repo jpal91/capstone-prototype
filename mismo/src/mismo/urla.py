@@ -45,14 +45,12 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 class OwnStatus(StrEnum):
     Own = "Own"
     Rent = "Rent"
-    Other = "Other"
 
 
 class AssetType(StrEnum):
     Checking = "Checking"
     Savings = "Savings"
     Retirement = "Retirement"
-    Other = "Other"
 
 
 class LiabilityType(StrEnum):
@@ -66,20 +64,17 @@ class LiabilityType(StrEnum):
 class LoanProgram(StrEnum):
     Conventional = "Conventional"
     Fha = "FHA"
-    Other = "Other"
 
 
 class LoanPurpose(StrEnum):
     Purchase = "Purchase"
     Refinance = "Refinance"
-    Other = "Other"
 
 
 class Occupancy(StrEnum):
     Primary = "PrimaryResidence"
     Second = "SecondHome"
     Investment = "Investment"
-    Other = "Other"
 
 
 class UrlaModel(BaseModel):

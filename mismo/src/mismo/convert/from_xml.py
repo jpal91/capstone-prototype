@@ -1,3 +1,17 @@
+"""Read a MISMO v3.4 ``MESSAGE`` back into a ``Urla`` (FR-04).
+
+``from_xml`` reads the single-borrower subset that ``to_xml`` emits. It takes
+the first ``DEAL``, ``PARTY``, ``ROLE``, ``LOAN``, residence, and employer by
+position, and ignores ``RELATIONSHIPS``, because ``to_xml`` writes exactly one
+of each and links nothing else. A file from another system (e.g., the DU test
+cases) can hold several borrowers, related loans, and prior residences; that
+is out of scope (L-03).
+
+Values outside the subset raise ``UnsupportedError`` rather than being mapped
+to the nearest URLA value, e.g., a ``GiftOfCash`` asset, a VA loan, or
+self-employment income (L-04).
+"""
+
 from datetime import date
 from decimal import Decimal
 from typing import Any, get_args, get_origin
@@ -5,8 +19,6 @@ from typing import Any, get_args, get_origin
 from xsdata.formats.dataclass.context import XmlContext
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
-
-from mismo.generated import HousingExpenseBase, PropertyUsageBase
 
 from ..generated import (
     Address,
@@ -20,6 +32,9 @@ from ..generated import (
     Deal,
     Employer,
     HousingExpense,
+    HousingExpenseBase,
+    HousingExpenseTimingBase,
+    IncomeBase,
     Liability,
     LiabilityBase,
     LiabilityDetail,
@@ -30,28 +45,35 @@ from ..generated import (
     Name,
     Party,
     Property,
+    PropertyUsageBase,
     Residence,
 )
 from ..urla import Asset as UrlaAsset
+from ..urla import Borrower as UrlaBorrower
 from ..urla import (
-    AssetType,
     CurrentProperty,
     Income,
-    LiabilityType,
     LoanInformation,
-    LoanProgram,
-    LoanPurpose,
-    Occupancy,
-    OwnStatus,
     SubjectProperty,
     Urla,
 )
-from ..urla import Borrower as UrlaBorrower
 from ..urla import Liability as UrlaLiability
+from .mappings import (
+    ASSET_TYPES,
+    LIABILITY_TYPES,
+    LOAN_PROGRAMS,
+    LOAN_PURPOSES,
+    OCCUPANCIES,
+    OWN_STATUSES,
+)
 
 
 class MissingError(ValueError):
-    pass
+    """A required element is absent."""
+
+
+class UnsupportedError(ValueError):
+    """The XML holds a value the supported URLA subset cannot represent."""
 
 
 def access[O](value: Any, path: list[str | int], typ: type[O]) -> O:
@@ -64,16 +86,17 @@ def access[O](value: Any, path: list[str | int], typ: type[O]) -> O:
         if isinstance(p, str):
             tgt = getattr(tgt, p)
         elif isinstance(p, int):
-            if p < len(tgt):
-                tgt = tgt[p]
-            else:
-                tgt = None
+            if not isinstance(tgt, list):
+                raise TypeError(
+                    f"index {p} needs a list, recv {type(tgt).__name__}, path - {path}"
+                )
+            tgt = tgt[p] if p < len(tgt) else None
         else:
-            raise TypeError(f"path can only be list or str, recv {p}")
+            raise TypeError(f"path can only be int or str, recv {p}")
 
         if tgt is None:
             raise MissingError(
-                f"missing element: path - {p}, type - {type(value).__name__}"
+                f"missing element: path - {p} in {path}, type - {type(value).__name__}"
             )
 
     base = get_origin(typ)
@@ -100,32 +123,24 @@ def access[O](value: Any, path: list[str | int], typ: type[O]) -> O:
 
 def opt_access[O](value: Any, path: list[str | int], typ: type[O]) -> O | None:
     try:
-        res = access(value, path, typ)
-        return res
+        return access(value, path, typ)
     except MissingError:
         return None
+
+
+def convert[M, U](table: dict[U, M], value: M, element: str) -> U:
+    """The URLA value for a MISMO enumeration, from a ``mappings`` table."""
+    for urla_value, mismo_value in table.items():
+        if mismo_value == value:
+            return urla_value
+
+    raise UnsupportedError(f"unsupported {element}: {value}")
 
 
 def format_zip(zip_code: str | None):
     if not zip_code:
         return None
     return zip_code if len(zip_code) <= 5 else f"{zip_code[:5]}-{zip_code[5:]}"
-
-
-LIABILITY_TYPES = {
-    LiabilityBase.INSTALLMENT: LiabilityType.Installment,
-    LiabilityBase.LEASE_PAYMENT: LiabilityType.Lease,
-    LiabilityBase.OPEN30_DAY_CHARGE_ACCOUNT: LiabilityType.Open30Day,
-    LiabilityBase.REVOLVING: LiabilityType.Revolving,
-    LiabilityBase.OTHER: LiabilityType.Other,
-}
-
-
-def liability_type_convert(lb: LiabilityBase) -> LiabilityType:
-    try:
-        return LIABILITY_TYPES[lb]
-    except KeyError:
-        return LiabilityType.Other
 
 
 def urla_liabilities(deal: Deal) -> list[UrlaLiability]:
@@ -136,12 +151,16 @@ def urla_liabilities(deal: Deal) -> list[UrlaLiability]:
         return []
 
     for liab in deal_liabilities:
-        name = access(liab, ["liability_holder", "name", "full_name", "value"], str)
         l_detail = access(liab, ["liability_detail"], LiabilityDetail)
+        l_type = convert(
+            LIABILITY_TYPES,
+            access(l_detail, ["liability_type", "value"], LiabilityBase),
+            "LiabilityType",
+        )
+        name = access(liab, ["liability_holder", "name", "full_name", "value"], str)
         months_remain = opt_access(
             l_detail, ["liability_remaining_term_months_count", "value"], int
         )
-        l_type = access(l_detail, ["liability_type", "value"], LiabilityBase)
         balance = access(
             l_detail, ["liability_unpaid_balance_amount", "value"], Decimal
         )
@@ -151,7 +170,7 @@ def urla_liabilities(deal: Deal) -> list[UrlaLiability]:
 
         urla_liability = UrlaLiability(
             institution_name=name,
-            liability_type=liability_type_convert(l_type),
+            liability_type=l_type,
             monthly_amount=monthly_amt,
             balance=balance,
             months_remaining=months_remain,
@@ -162,20 +181,6 @@ def urla_liabilities(deal: Deal) -> list[UrlaLiability]:
     return liabilities
 
 
-ASSET_TYPES = {
-    AssetBase.CHECKING_ACCOUNT: AssetType.Checking,
-    AssetBase.SAVINGS_ACCOUNT: AssetType.Savings,
-    AssetBase.RETIREMENT_FUND: AssetType.Retirement,
-}
-
-
-def asset_type_convert(ab: AssetBase) -> AssetType:
-    try:
-        return ASSET_TYPES[ab]
-    except KeyError:
-        raise ValueError(f"unsupported asset type: {ab}")
-
-
 def urla_assets(deal: Deal) -> list[UrlaAsset]:
     assets = []
     deal_assets = opt_access(deal, ["assets", "asset"], list[Asset])
@@ -184,16 +189,25 @@ def urla_assets(deal: Deal) -> list[UrlaAsset]:
         return []
 
     for asset in deal_assets:
-        name = access(asset, ["asset_holder", "name", "full_name", "value"], str)
+        # Owned real estate (URLA section 3) has no ASSET_DETAIL.
+        if asset.owned_property is not None:
+            raise UnsupportedError("unsupported asset: owned real estate")
+
+        # The type first: assets outside the subset (e.g., gifts) have no holder.
         asset_detail = access(asset, ["asset_detail"], AssetDetail)
+        asset_type = convert(
+            ASSET_TYPES,
+            access(asset_detail, ["asset_type", "value"], AssetBase),
+            "AssetType",
+        )
+        name = access(asset, ["asset_holder", "name", "full_name", "value"], str)
         amt = access(
             asset_detail, ["asset_cash_or_market_value_amount", "value"], Decimal
         )
-        asset_type = access(asset_detail, ["asset_type", "value"], AssetBase)
 
         urla_asset = UrlaAsset(
             institution_name=name,
-            asset_type=asset_type_convert(asset_type),
+            asset_type=asset_type,
             amount=amt,
         )
 
@@ -202,10 +216,7 @@ def urla_assets(deal: Deal) -> list[UrlaAsset]:
     return assets
 
 
-def urla_income(deal: Deal) -> Income:
-    borrower = access(
-        deal, ["parties", "party", 0, "roles", "role", 0, "borrower"], Borrower
-    )
+def urla_income(borrower: Borrower) -> Income:
     employer = access(borrower, ["employers", "employer", 0], Employer)
     name = access(
         employer, ["legal_entity", "legal_entity_detail", "full_name", "value"], str
@@ -215,11 +226,33 @@ def urla_income(deal: Deal) -> Income:
         employer, ["employment", "employment_position_description", "value"], str
     )
 
-    current_income_item = access(
+    current_income_item = opt_access(
         borrower,
         ["current_income", "current_income_items", "current_income_item", 0],
         CurrentIncomeItem,
     )
+
+    if current_income_item is None:
+        # A 25%-or-more owner reports one monthly figure on the employer (L-04).
+        self_employed = opt_access(
+            employer,
+            ["employment", "employment_monthly_income_amount", "value"],
+            Decimal,
+        )
+
+        if self_employed is not None:
+            raise UnsupportedError("unsupported income: self-employment")
+        raise MissingError("missing element: CURRENT_INCOME_ITEM")
+
+    income_type = access(
+        current_income_item,
+        ["current_income_item_detail", "income_type", "value"],
+        IncomeBase,
+    )
+
+    if income_type != IncomeBase.BASE:
+        raise UnsupportedError(f"unsupported IncomeType: {income_type}")
+
     income = access(
         current_income_item,
         ["current_income_item_detail", "current_income_monthly_total_amount", "value"],
@@ -234,19 +267,7 @@ def urla_income(deal: Deal) -> Income:
     )
 
 
-def occupancy_type_convert(ot: PropertyUsageBase) -> Occupancy:
-    match ot:
-        case PropertyUsageBase.PRIMARY_RESIDENCE:
-            return Occupancy.Primary
-        case PropertyUsageBase.SECOND_HOME:
-            return Occupancy.Second
-        case PropertyUsageBase.INVESTMENT:
-            return Occupancy.Investment
-        case _:
-            raise ValueError(f"unsuported occupancy type: {ot}")
-
-
-def urla_subject_property(deal: Deal) -> SubjectProperty:
+def urla_subject_property(deal: Deal, loan: Loan) -> SubjectProperty:
     collateral = access(
         deal, ["collaterals", "collateral", 0, "subject_property"], Property
     )
@@ -268,9 +289,9 @@ def urla_subject_property(deal: Deal) -> SubjectProperty:
         ["property_detail", "property_usage_type", "value"],
         PropertyUsageBase,
     )
-    occupancy = occupancy_type_convert(property_usage)
+    occupancy = convert(OCCUPANCIES, property_usage, "PropertyUsageType")
 
-    property_value = access(
+    property_value = opt_access(
         collateral,
         [
             "property_valuations",
@@ -283,7 +304,21 @@ def urla_subject_property(deal: Deal) -> SubjectProperty:
         Decimal,
     )
 
-    loan = access(deal, ["loans", "loan", 0], Loan)
+    if property_value is None:
+        # A purchase without an appraisal yet has only the contract price.
+        property_value = access(
+            collateral,
+            [
+                "sales_contracts",
+                "sales_contract",
+                0,
+                "sales_contract_detail",
+                "sales_contract_amount",
+                "value",
+            ],
+            Decimal,
+        )
+
     expenses = (
         opt_access(loan, ["housing_expenses", "housing_expense"], list[HousingExpense])
         or []
@@ -291,6 +326,14 @@ def urla_subject_property(deal: Deal) -> SubjectProperty:
     monthly_hoi, monthly_taxes = None, None
 
     for exp in expenses:
+        # The borrower's current (Present) housing costs are listed here too.
+        timing = opt_access(
+            exp, ["housing_expense_timing_type", "value"], HousingExpenseTimingBase
+        )
+
+        if timing != HousingExpenseTimingBase.PROPOSED:
+            continue
+
         exp_ty = opt_access(exp, ["housing_expense_type", "value"], HousingExpenseBase)
         amt = opt_access(exp, ["housing_expense_payment_amount", "value"], Decimal)
 
@@ -312,9 +355,7 @@ def urla_subject_property(deal: Deal) -> SubjectProperty:
     )
 
 
-def urla_borrower(deal: Deal) -> UrlaBorrower:
-    party = access(deal, ["parties", "party", 0], Party)
-
+def urla_borrower(party: Party, borrower: Borrower) -> UrlaBorrower:
     name = access(party, ["individual", "name"], Name)
     first_name = access(name, ["first_name", "value"], str)
     last_name = access(name, ["last_name", "value"], str)
@@ -344,7 +385,6 @@ def urla_borrower(deal: Deal) -> UrlaBorrower:
         if phone:
             phone_number = phone
 
-    borrower = access(party, ["roles", "role", 0, "borrower"], Borrower)
     dob = access(borrower, ["borrower_detail", "borrower_birth_date", "value"], str)
 
     return UrlaBorrower(
@@ -356,23 +396,8 @@ def urla_borrower(deal: Deal) -> UrlaBorrower:
     )
 
 
-def urla_current_property(deal: Deal):
-    residence = access(
-        deal,
-        [
-            "parties",
-            "party",
-            0,
-            "roles",
-            "role",
-            0,
-            "borrower",
-            "residences",
-            "residence",
-            0,
-        ],
-        Residence,
-    )
+def urla_current_property(borrower: Borrower) -> CurrentProperty:
+    residence = access(borrower, ["residences", "residence", 0], Residence)
     street_address = access(residence, ["address", "address_line_text", "value"], str)
     city = access(residence, ["address", "city_name", "value"], str)
     state = access(residence, ["address", "state_code", "value"], str)
@@ -383,14 +408,6 @@ def urla_current_property(deal: Deal):
         ["residence_detail", "borrower_residency_basis_type", "value"],
         BorrowerResidencyBasisBase,
     )
-
-    match own_basis:
-        case BorrowerResidencyBasisBase.OWN:
-            own_status = OwnStatus.Own
-        case BorrowerResidencyBasisBase.RENT:
-            own_status = OwnStatus.Rent
-        case _:
-            own_status = OwnStatus.Other
 
     months_at_address = access(
         residence,
@@ -403,14 +420,12 @@ def urla_current_property(deal: Deal):
         city=city,
         state=state,
         zip_code=format_zip(zip_code),
-        own_status=own_status,
+        own_status=convert(OWN_STATUSES, own_basis, "BorrowerResidencyBasisType"),
         months_at_address=months_at_address,
     )
 
 
-def urla_loan_information(deal: Deal):
-    loan = access(deal, ["loans", "loan", 0], Loan)
-
+def urla_loan_information(loan: Loan) -> LoanInformation:
     loan_term_months = access(
         loan,
         [
@@ -425,33 +440,15 @@ def urla_loan_information(deal: Deal):
     mortgage_base = access(
         loan, ["terms_of_loan", "mortgage_type", "value"], MortgageBase
     )
-
-    match mortgage_base:
-        case MortgageBase.FHA:
-            loan_program = LoanProgram.Fha
-        case MortgageBase.CONVENTIONAL:
-            loan_program = LoanProgram.Conventional
-        case _:
-            raise ValueError(f"unsupported loan program {mortgage_base}")
-
     loan_amount = access(loan, ["terms_of_loan", "base_loan_amount", "value"], Decimal)
-
     purpose_type = access(
         loan, ["terms_of_loan", "loan_purpose_type", "value"], LoanPurposeBase
     )
 
-    match purpose_type:
-        case LoanPurposeBase.PURCHASE:
-            loan_purpose = LoanPurpose.Purchase
-        case LoanPurposeBase.REFINANCE:
-            loan_purpose = LoanPurpose.Refinance
-        case _:
-            raise ValueError(f"unsupported loan purpose: {purpose_type}")
-
     return LoanInformation(
         loan_amount=loan_amount,
-        loan_program=loan_program,
-        loan_purpose=loan_purpose,
+        loan_program=convert(LOAN_PROGRAMS, mortgage_base, "MortgageType"),
+        loan_purpose=convert(LOAN_PURPOSES, purpose_type, "LoanPurposeType"),
         loan_term_months=loan_term_months,
     )
 
@@ -464,13 +461,16 @@ def from_xml(input: bytes) -> Urla:
     message = parser.from_bytes(input, Message)
 
     deal = access(message, ["deal_sets", "deal_set", 0, "deals", "deal", 0], Deal)
+    party = access(deal, ["parties", "party", 0], Party)
+    borrower = access(party, ["roles", "role", 0, "borrower"], Borrower)
+    loan = access(deal, ["loans", "loan", 0], Loan)
 
     return Urla(
-        borrower=urla_borrower(deal),
-        address=urla_current_property(deal),
-        subject_property=urla_subject_property(deal),
-        income=urla_income(deal),
-        loan=urla_loan_information(deal),
+        borrower=urla_borrower(party, borrower),
+        address=urla_current_property(borrower),
+        subject_property=urla_subject_property(deal, loan),
+        income=urla_income(borrower),
+        loan=urla_loan_information(loan),
         assets=urla_assets(deal),
         liabilities=urla_liabilities(deal),
     )

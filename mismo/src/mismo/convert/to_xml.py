@@ -23,7 +23,6 @@ from ..generated import (
     Amortization,
     AmortizationRule,
     Asset,
-    AssetBase,
     AssetDetail,
     AssetEnum,
     AssetHolder,
@@ -31,7 +30,6 @@ from ..generated import (
     Borrower,
     BorrowerDetail,
     BorrowerResidencyBase,
-    BorrowerResidencyBasisBase,
     BorrowerResidencyBasisEnum,
     BorrowerResidencyEnum,
     Collateral,
@@ -68,7 +66,6 @@ from ..generated import (
     LegalEntityDetail,
     Liabilities,
     Liability,
-    LiabilityBase,
     LiabilityDetail,
     LiabilityEnum,
     LiabilityHolder,
@@ -76,7 +73,6 @@ from ..generated import (
     LoanAmortizationPeriodBase,
     LoanAmortizationPeriodEnum,
     LoanDetail,
-    LoanPurposeBase,
     LoanPurposeEnum,
     LoanRoleBase,
     Loans,
@@ -89,7 +85,6 @@ from ..generated import (
     MismonumericString,
     Mismostring,
     Mismovalue,
-    MortgageBase,
     MortgageEnum,
     Name,
     Parties,
@@ -98,7 +93,6 @@ from ..generated import (
     PartyRoleEnum,
     Property,
     PropertyDetail,
-    PropertyUsageBase,
     PropertyUsageEnum,
     PropertyValuation,
     PropertyValuationDetail,
@@ -123,8 +117,15 @@ from ..urla import (
     LoanProgram,
     LoanPurpose,
     Occupancy,
-    OwnStatus,
     Urla,
+)
+from .mappings import (
+    ASSET_TYPES,
+    LIABILITY_TYPES,
+    LOAN_PROGRAMS,
+    LOAN_PURPOSES,
+    OCCUPANCIES,
+    OWN_STATUSES,
 )
 
 
@@ -145,9 +146,7 @@ def borrower_residence(urla: Urla) -> Residences:
         address=mismo_address(address),
         residence_detail=ResidenceDetail(
             borrower_residency_basis_type=BorrowerResidencyBasisEnum(
-                value=BorrowerResidencyBasisBase.RENT
-                if address.own_status == OwnStatus.Rent
-                else BorrowerResidencyBasisBase.OWN
+                value=OWN_STATUSES[address.own_status]
             ),
             borrower_residency_duration_months_count=Mismocount(
                 value=address.months_at_address
@@ -284,13 +283,6 @@ def borrower_parties(urla: Urla) -> Parties:
     return Parties(party=[party])
 
 
-ASSET_TYPES = {
-    AssetType.Checking: AssetBase.CHECKING_ACCOUNT,
-    AssetType.Savings: AssetBase.SAVINGS_ACCOUNT,
-    AssetType.Retirement: AssetBase.RETIREMENT_FUND,
-}
-
-
 def asset_type(at: AssetType) -> AssetEnum:
     """The MISMO ``AssetType`` for a URLA asset type."""
     return AssetEnum(value=ASSET_TYPES[at])
@@ -321,19 +313,7 @@ def borrower_assets(urla: Urla) -> Assets | None:
 
 def property_usage(occ: Occupancy) -> PropertyUsageEnum:
     """The MISMO ``PropertyUsageType`` for an occupancy."""
-    value = None
-
-    match occ:
-        case Occupancy.Primary:
-            value = PropertyUsageBase.PRIMARY_RESIDENCE
-        case Occupancy.Second:
-            value = PropertyUsageBase.SECOND_HOME
-        case Occupancy.Investment:
-            value = PropertyUsageBase.INVESTMENT
-        case Occupancy.Other:
-            value = PropertyUsageBase.OTHER
-
-    return PropertyUsageEnum(value=value)
+    return PropertyUsageEnum(value=OCCUPANCIES[occ])
 
 
 def borrower_collateral(urla: Urla) -> Collaterals:
@@ -381,21 +361,7 @@ def borrower_collateral(urla: Urla) -> Collaterals:
 
 def liability_type(lt: LiabilityType) -> LiabilityEnum:
     """The MISMO ``LiabilityType`` for a URLA liability type."""
-    value = None
-
-    match lt:
-        case LiabilityType.Installment:
-            value = LiabilityBase.INSTALLMENT
-        case LiabilityType.Lease:
-            value = LiabilityBase.LEASE_PAYMENT
-        case LiabilityType.Open30Day:
-            value = LiabilityBase.OPEN30_DAY_CHARGE_ACCOUNT
-        case LiabilityType.Revolving:
-            value = LiabilityBase.REVOLVING
-        case _:
-            value = LiabilityBase.OTHER
-
-    return LiabilityEnum(value=value)
+    return LiabilityEnum(value=LIABILITY_TYPES[lt])
 
 
 def borrower_liabilities(urla: Urla) -> Liabilities | None:
@@ -429,15 +395,7 @@ def borrower_liabilities(urla: Urla) -> Liabilities | None:
 
 def mortgage_type(lp: LoanProgram) -> MortgageEnum:
     """The MISMO ``MortgageType`` for a loan program."""
-    value = None
-
-    match lp:
-        case LoanProgram.Fha:
-            value = MortgageBase.FHA
-        case _:
-            value = MortgageBase.CONVENTIONAL
-
-    return MortgageEnum(value=value)
+    return MortgageEnum(value=LOAN_PROGRAMS[lp])
 
 
 def borrower_loans(urla: Urla) -> Loans:
@@ -497,11 +455,7 @@ def borrower_loans(urla: Urla) -> Loans:
         ),
         terms_of_loan=TermsOfLoan(
             base_loan_amount=Mismoamount(value=l_info.loan_amount),
-            loan_purpose_type=LoanPurposeEnum(
-                value=LoanPurposeBase.PURCHASE
-                if l_info.loan_purpose == LoanPurpose.Purchase
-                else LoanPurposeBase.REFINANCE,
-            ),
+            loan_purpose_type=LoanPurposeEnum(value=LOAN_PURPOSES[l_info.loan_purpose]),
             mortgage_type=mortgage_type(l_info.loan_program),
         ),
     )
@@ -524,11 +478,13 @@ def relationships(urla: Urla) -> Relationships:
         (f"LIABILITY_{i}", "BORROWER_1", "LIABILITY_IsAssociatedWith_ROLE")
         for i in range(1, len(urla.liabilities) + 1)
     ]
-    links.append((
-        "CURRENT_INCOME_ITEM_1",
-        "EMPLOYER_1",
-        "CURRENT_INCOME_ITEM_IsAssociatedWith_EMPLOYER",
-    ))
+    links.append(
+        (
+            "CURRENT_INCOME_ITEM_1",
+            "EMPLOYER_1",
+            "CURRENT_INCOME_ITEM_IsAssociatedWith_EMPLOYER",
+        )
+    )
     return Relationships(
         relationship=[
             Relationship(
