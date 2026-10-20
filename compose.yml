@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:18-alpine
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: core
+      POSTGRES_PASSWORD: core
+      POSTGRES_DB: core
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core -d core"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # core:
+  #   build: ./core # Dockerfile goes here
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
