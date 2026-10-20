@@ -50,3 +50,43 @@ def application(assets: int, liabilities: int) -> Urla:
     return Urla.model_validate(
         {**BASE, "assets": [ASSET] * assets, "liabilities": [LIABILITY] * liabilities}
     )
+
+
+# Every optional field filled, every asset and liability type, FHA refinance.
+FULL = Urla.model_validate(
+    {
+        **BASE,
+        "borrower": {
+            **BASE["borrower"],
+            "email": "alex@example.com",
+            "phoneNumber": "+1 520 555 0100",
+        },
+        "address": {**BASE["address"], "zipCode": "85701-1234"},
+        "subjectProperty": {
+            **BASE["subjectProperty"],
+            "streetAddress": "1 Test Ln",
+            "city": "Tucson",
+            "state": "AZ",
+            "zipCode": "85702",
+            "monthlyHoi": "100.00",
+            "monthlyTaxes": "250.00",
+        },
+        "income": {**BASE["income"], "position": "Engineer"},
+        "loan": {**BASE["loan"], "loanPurpose": "Refinance", "loanProgram": "FHA"},
+        "assets": [
+            ASSET,
+            {**ASSET, "assetType": "Savings"},
+            {**ASSET, "assetType": "Retirement"},
+        ],
+        "liabilities": [
+            {**LIABILITY, "liabilityType": liability_type, "monthsRemaining": 12}
+            for liability_type in (
+                "Revolving",
+                "Installment",
+                "Open30Day",
+                "Lease",
+                "Other",
+            )
+        ],
+    }
+)

@@ -5,10 +5,11 @@ mapping to and from MISMO v3.4 (Build 324) XML. `core` uses it to finalize a
 draft into the XML a lender receives.
 
 ```python
-from mismo import Urla, from_xml, to_xml
+from mismo import Urla, from_xml, to_xml, validate
 
 urla = Urla.model_validate(draft)   # a complete pre-application
 xml = to_xml(urla)                  # MISMO v3.4 MESSAGE, UTF-8 bytes
+validate(xml)                       # DU wrapper schema (FR-03); raises SchemaValidationError
 assert from_xml(xml) == urla        # the round trip (FR-04)
 ```
 
@@ -38,6 +39,8 @@ bindings fails with a message pointing here.
    ```
 
 Both recipes stop with an error if the files they need are missing.
+`validate` reads `mismo/schema/staged/DU_Wrapper_3.4.0_B324.xsd`; set
+`MISMO_SCHEMA` to use a staged copy elsewhere (e.g., in a container).
 `mismo/schema/` is gitignored, and so is every `*.xsd`. Don't commit the
 schema or the generated code, and don't push an image built from them to a
 public registry.
@@ -57,4 +60,5 @@ uv run pytest
 The tests use synthetic data only (`tests/synthetic.py`). If Fannie Mae's DU
 Specification test cases are unpacked in `mismo/schema/DU Specification Test
 Case Suite October 2026/`, `test_from_xml.py` also checks that each one is
-rejected for the right reason; otherwise that test is skipped.
+rejected for the right reason; otherwise that test is skipped. The
+validation tests are skipped when the schema has not been staged.

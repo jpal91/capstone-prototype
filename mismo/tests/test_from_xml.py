@@ -17,51 +17,13 @@ from pathlib import Path
 
 import pytest
 from lxml import etree  # ty: ignore
-from synthetic import ASSET, BASE, LIABILITY, application
+from synthetic import FULL, application
 
 from mismo.convert import from_xml, to_xml
 from mismo.convert.from_xml import MissingError, UnsupportedError
 from mismo.urla import Urla
 
 MISMO = "{http://www.mismo.org/residential/2009/schemas}"
-
-FULL = Urla.model_validate(
-    {
-        **BASE,
-        "borrower": {
-            **BASE["borrower"],
-            "email": "alex@example.com",
-            "phoneNumber": "+1 520 555 0100",
-        },
-        "address": {**BASE["address"], "zipCode": "85701-1234"},
-        "subjectProperty": {
-            **BASE["subjectProperty"],
-            "streetAddress": "1 Test Ln",
-            "city": "Tucson",
-            "state": "AZ",
-            "zipCode": "85702",
-            "monthlyHoi": "100.00",
-            "monthlyTaxes": "250.00",
-        },
-        "income": {**BASE["income"], "position": "Engineer"},
-        "loan": {**BASE["loan"], "loanPurpose": "Refinance", "loanProgram": "FHA"},
-        "assets": [
-            ASSET,
-            {**ASSET, "assetType": "Savings"},
-            {**ASSET, "assetType": "Retirement"},
-        ],
-        "liabilities": [
-            {**LIABILITY, "liabilityType": liability_type, "monthsRemaining": 12}
-            for liability_type in (
-                "Revolving",
-                "Installment",
-                "Open30Day",
-                "Lease",
-                "Other",
-            )
-        ],
-    }
-)
 
 
 def edited(urla: Urla, edit: Callable[[etree._Element], None]) -> bytes:
