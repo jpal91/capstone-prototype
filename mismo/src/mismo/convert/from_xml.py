@@ -26,8 +26,6 @@ from ..generated import (
     Loan,
     LoanPurposeBase,
     Message,
-    Mismoamount,
-    Mismostring,
     MortgageBase,
     Name,
     Party,
@@ -98,32 +96,6 @@ def opt_access[O](value: Any, path: list[str | int], typ: type[O]) -> O | None:
         raise TypeError(e)
     except AttributeError as e:
         raise AttributeError(e)
-
-
-def required_text(v: Mismostring | None) -> str:
-    if v is None:
-        raise ValueError("missing text")
-    return v.value
-
-
-def text(v: Mismostring | None) -> str | None:
-    return v.value if v else None
-
-
-def number(v: Mismoamount | None) -> Decimal | None:
-    return v.value if v else None
-
-
-def need[T](value: T | None, element: str) -> T:
-    if value is None:
-        raise ValueError(f"missing {element}")
-    return value
-
-
-def first[T](items: list[T], element: str) -> T:
-    if not items:
-        raise ValueError(f"missing {element}")
-    return items[0]
 
 
 def format_zip(zip_code: str | None):
