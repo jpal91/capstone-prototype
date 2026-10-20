@@ -50,11 +50,15 @@ from ..urla import Borrower as UrlaBorrower
 from ..urla import Liability as UrlaLiability
 
 
+class MissingError(ValueError):
+    pass
+
+
 def access[O](value: Any, path: list[str | int], typ: type[O]) -> O:
     tgt: Any = value
 
     if tgt is None:
-        raise TypeError("")
+        raise TypeError("value is None")
 
     for p in path:
         if isinstance(p, str):
@@ -65,23 +69,31 @@ def access[O](value: Any, path: list[str | int], typ: type[O]) -> O:
             else:
                 tgt = None
         else:
-            raise TypeError("")
+            raise TypeError(f"path can only be list or str, recv {p}")
 
         if tgt is None:
-            raise ValueError("")
+            raise MissingError(
+                f"missing element: path - {p}, type - {type(value).__name__}"
+            )
 
     base = get_origin(typ)
     if base is not None:
         if type(tgt) != base:
-            raise TypeError("")
+            raise TypeError(
+                f"base type mismatch: req type - {typ}, recv base - {base}, input type - {type(value).__name__}"
+            )
         elif base is list and len(tgt):
             args = get_args(typ)
 
             if args and type(tgt[0]) != args[0]:
-                raise TypeError("bad list")
+                raise TypeError(
+                    f"list item type mismatch: req type - {typ}, recv - {tgt[0]}, input type - {type(value).__name__}"
+                )
 
     elif type(tgt) != typ:
-        raise TypeError("a")
+        raise TypeError(
+            f"type mismatch: req type - {typ}, recv - {type(tgt).__name__}, input type - {type(value).__name__}"
+        )
 
     return tgt
 
@@ -90,12 +102,8 @@ def opt_access[O](value: Any, path: list[str | int], typ: type[O]) -> O | None:
     try:
         res = access(value, path, typ)
         return res
-    except ValueError:
+    except MissingError:
         return None
-    except TypeError as e:
-        raise TypeError(e)
-    except AttributeError as e:
-        raise AttributeError(e)
 
 
 def format_zip(zip_code: str | None):
@@ -165,8 +173,7 @@ def asset_type_convert(ab: AssetBase) -> AssetType:
     try:
         return ASSET_TYPES[ab]
     except KeyError:
-        # Just used for test cases
-        return AssetType.Other
+        raise ValueError(f"unsupported asset type: {ab}")
 
 
 def urla_assets(deal: Deal) -> list[UrlaAsset]:
@@ -236,8 +243,7 @@ def occupancy_type_convert(ot: PropertyUsageBase) -> Occupancy:
         case PropertyUsageBase.INVESTMENT:
             return Occupancy.Investment
         case _:
-            # Only really needed for testing
-            return Occupancy.Other
+            raise ValueError(f"unsuported occupancy type: {ot}")
 
 
 def urla_subject_property(deal: Deal) -> SubjectProperty:
@@ -426,7 +432,7 @@ def urla_loan_information(deal: Deal):
         case MortgageBase.CONVENTIONAL:
             loan_program = LoanProgram.Conventional
         case _:
-            loan_program = LoanProgram.Other
+            raise ValueError(f"unsupported loan program {mortgage_base}")
 
     loan_amount = access(loan, ["terms_of_loan", "base_loan_amount", "value"], Decimal)
 
@@ -440,7 +446,7 @@ def urla_loan_information(deal: Deal):
         case LoanPurposeBase.REFINANCE:
             loan_purpose = LoanPurpose.Refinance
         case _:
-            loan_purpose = LoanPurpose.Other
+            raise ValueError(f"unsupported loan purpose: {purpose_type}")
 
     return LoanInformation(
         loan_amount=loan_amount,
