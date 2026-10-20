@@ -20,7 +20,7 @@ This is the single list of requirement IDs used by the paper (Ch. 4 defines them
 | FR-04 | Emitted XML round-trips: parsing it back yields the same field values as the source draft. | §2.2, §5.2 | `mismo` mapper + bindings | Parse emitted XML, compare to draft; Fannie Mae's DU test case DI-C01 also reads and re-emits | Core |
 | FR-05 | The borrower can grant a specific lender access to a specific version, with an expiry. | §2.3.2, §2.3.4 | `core` grants, `portal` consent screen | Grant A and B, not C; C is denied | Core |
 | FR-06 | The borrower can revoke any grant independently; other grants are unaffected. | §2.3.2, §2.3.4 | `core` grants | Revoke A; A denied, B still allowed | Core |
-| FR-07 | A lender can fetch an application only with a grant that is its own, not revoked, and not expired. The response is exactly the bound version's bytes (hash matches). | §2.3.2, §5.4, §6.2 | `core` lender API | Consent matrix: own/other lender × active/revoked/expired; hash check on success | Core |
+| FR-07 | A lender can fetch an application only with a grant that is its own, not revoked, and not expired. The response is exactly the bound version's bytes (hash matches). | §2.3.2, §5.4, §6.2 | `core` lender API | Consent matrix: own/other lender × active/revoked/expired; hash check on success; every denial returns the same 404, and its audit entry records the reason | Core |
 | FR-08 | The borrower can see every grant's status and when each lender last fetched. | §2.3.4 | `core` grants + audit, `portal` | Scenario reads grant list after fetches | Core |
 | FR-09 | When a grant is created, the lender receives a notification that carries no application data. | §5.4 | `core` → `mock-lender` webhook | Notification received; payload has no application fields | Cut line |
 | FR-10 | A demo lender view shows what each mock lender has received and its current access status. | §7.2 | `portal` /lender, `mock-lender` | Screenshot (Ch. 7); not automated | Cut line |
@@ -36,6 +36,7 @@ This is the single list of requirement IDs used by the paper (Ch. 4 defines them
 | NFR-05 | Stored version XML is encrypted at rest with a key supplied through the environment. | §6.4 | `core` storage | Raw database column is not readable XML; fetch still returns the original bytes | Cut line |
 | NFR-06 | All data is synthetic. | `AGENTS.md` guardrails | `seed` | Review; not automated | Core |
 | NFR-07 | The whole system starts with `docker compose up --build` and is removed with `docker compose down -v`; `eval/` runs in the same environment. | §3.3, §7 | `compose.yaml` | The eval run itself | Core |
+| NFR-08 | Every borrower route requires a valid session, and a borrower can read or change only their own draft, versions, and grants. | §6.1 | `core` borrower auth | No session → 401; borrower B on A's draft, versions, or grants → 404 | Core |
 
 ## Known limitations to demonstrate (not requirements — expected outcomes)
 
