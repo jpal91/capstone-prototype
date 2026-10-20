@@ -330,6 +330,8 @@ def property_usage(occ: Occupancy) -> PropertyUsageEnum:
             value = PropertyUsageBase.SECOND_HOME
         case Occupancy.Investment:
             value = PropertyUsageBase.INVESTMENT
+        case Occupancy.Other:
+            value = PropertyUsageBase.OTHER
 
     return PropertyUsageEnum(value=value)
 
