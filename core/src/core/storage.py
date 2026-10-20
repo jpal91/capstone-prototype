@@ -1,16 +1,9 @@
-import os
 from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-
-# Default matches compose.yaml's dev database; compose overrides it inside containers.
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    "postgresql+psycopg://core:core@localhost:5432/core",
-)
 
 
 class Base(DeclarativeBase):
