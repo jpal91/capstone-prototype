@@ -17,13 +17,13 @@ class Borrower(Base):
     username: Mapped[str] = mapped_column(String(255), unique=True)
     password_hash: Mapped[str]
 
-    application: Mapped["Application | None"] = relationship(
+    application: Mapped["Draft | None"] = relationship(
         back_populates="borrower", cascade="all, delete-orphan"
     )
 
 
-class Application(Base):
-    __tablename__ = "application"
+class Draft(Base):
+    __tablename__ = "draft"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     data: Mapped[dict[str, Any]] = mapped_column(JSONB)
@@ -34,4 +34,4 @@ class Application(Base):
         onupdate=func.now(),
     )
 
-    borrower: Mapped["Borrower"] = relationship(back_populates="application")
+    borrower: Mapped["Borrower"] = relationship(back_populates="draft")

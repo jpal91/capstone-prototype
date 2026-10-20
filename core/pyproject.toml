@@ -10,7 +10,12 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.142.2",
     "sqlalchemy>=2.1.4",
+    "mismo",
+    "psycopg[binary]>=3.3.6",
 ]
+
+[tool.uv.sources]
+mismo = { workspace = true }
 
 [project.scripts]
 core = "core:main"
