@@ -17,7 +17,7 @@ class Borrower(Base):
     username: Mapped[str] = mapped_column(String(255), unique=True)
     password_hash: Mapped[str]
 
-    application: Mapped["Draft | None"] = relationship(
+    draft: Mapped["Draft | None"] = relationship(
         back_populates="borrower", cascade="all, delete-orphan"
     )
 
