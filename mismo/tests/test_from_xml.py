@@ -12,6 +12,7 @@ eval/.
 """
 
 from collections.abc import Callable
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -137,6 +138,12 @@ def owned_real_estate(doc: etree._Element) -> None:
     detail.getparent().remove(detail)
 
 
+def co_borrower(doc: etree._Element) -> None:
+    """Add a second borrower: a copy of the first PARTY (L-03)."""
+    party = first(doc, "PARTY")
+    party.addnext(deepcopy(party))
+
+
 @pytest.mark.parametrize(
     ("edit", "message"),
     [
@@ -152,6 +159,7 @@ def owned_real_estate(doc: etree._Element) -> None:
         (set_text("IncomeType", "Pension"), "IncomeType"),
         (self_employed, "self-employment"),
         (owned_real_estate, "owned real estate"),
+        (co_borrower, "co-borrower"),
     ],
     ids=[
         "asset",
@@ -163,6 +171,7 @@ def owned_real_estate(doc: etree._Element) -> None:
         "income-type",
         "self-employed",
         "owned-property",
+        "co-borrower",
     ],
 )
 def test_values_outside_the_subset_are_rejected(
@@ -189,23 +198,23 @@ DU_CASES = (
 )
 DU_REASONS = {
     "DI-C01": "AssetType",
-    "DI-C02": "IncomeType",
-    "DI-C03": "AssetType",
-    "DI-C04": "AssetType",
+    "DI-C02": "co-borrower",
+    "DI-C03": "co-borrower",
+    "DI-C04": "co-borrower",
     "DI-C05": "AssetType",
-    "DI-C06": "AssetType",
+    "DI-C06": "co-borrower",
     "DI-C07": "AssetType",
-    "DI-C08": "AssetType",
-    "DI-C09": "AssetType",
+    "DI-C08": "co-borrower",
+    "DI-C09": "co-borrower",
     "DI-CL01": "self-employment",
-    "DI-FHA01": "BorrowerResidencyBasisType",
+    "DI-FHA01": "co-borrower",
     "DI-FHA02": "AssetType",
     "DI-FHA03": "BorrowerResidencyBasisType",
-    "DI-FHA04": "AssetType",
+    "DI-FHA04": "co-borrower",
     "DI-VA01": "MortgageType",
-    "DI-VA02": "IncomeType",
-    "DI-VA03": "IncomeType",
-    "DI-VA04": "IncomeType",
+    "DI-VA02": "co-borrower",
+    "DI-VA03": "co-borrower",
+    "DI-VA04": "co-borrower",
 }
 DU_FILES = sorted(DU_CASES.glob("*.xml"))
 

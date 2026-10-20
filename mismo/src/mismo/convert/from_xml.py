@@ -3,9 +3,10 @@
 ``from_xml`` reads the single-borrower subset that ``to_xml`` emits. It takes
 the first ``DEAL``, ``PARTY``, ``ROLE``, ``LOAN``, residence, and employer by
 position, and ignores ``RELATIONSHIPS``, because ``to_xml`` writes exactly one
-of each and links nothing else. A file from another system (e.g., the DU test
-cases) can hold several borrowers, related loans, and prior residences; that
-is out of scope (L-03).
+of each and links nothing else. A file with more than one borrower is
+rejected (L-03). A file from another system (e.g., the DU test cases) can also
+hold related loans and prior residences; reading those by position assumes the
+subject loan and current residence come first, as they do in the DU test cases.
 
 Values outside the subset raise ``UnsupportedError`` rather than being mapped
 to the nearest URLA value, e.g., a ``GiftOfCash`` asset, a VA loan, or
@@ -47,6 +48,7 @@ from ..generated import (
     Property,
     PropertyUsageBase,
     Residence,
+    Role,
 )
 from ..urla import Asset as UrlaAsset
 from ..urla import Borrower as UrlaBorrower
@@ -453,6 +455,16 @@ def urla_loan_information(loan: Loan) -> LoanInformation:
     )
 
 
+def borrower_count(deal: Deal) -> int:
+    parties = opt_access(deal, ["parties", "party"], list[Party]) or []
+    return sum(
+        1
+        for party in parties
+        for role in opt_access(party, ["roles", "role"], list[Role]) or []
+        if role.borrower is not None
+    )
+
+
 def from_xml(input: bytes) -> Urla:
     config = ParserConfig()
     context = XmlContext()
@@ -461,6 +473,10 @@ def from_xml(input: bytes) -> Urla:
     message = parser.from_bytes(input, Message)
 
     deal = access(message, ["deal_sets", "deal_set", 0, "deals", "deal", 0], Deal)
+
+    if borrower_count(deal) > 1:
+        raise UnsupportedError("unsupported borrowers: a co-borrower (L-03)")
+
     party = access(deal, ["parties", "party", 0], Party)
     borrower = access(party, ["roles", "role", 0, "borrower"], Borrower)
     loan = access(deal, ["loans", "loan", 0], Loan)

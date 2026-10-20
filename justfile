@@ -1,11 +1,14 @@
 schema := "./mismo/schema/ReferenceModel_v3.4.0_B324"
 du := schema / "Fannie Mae DU Schema Files updated 080825"
 staged := "./mismo/schema/staged"
+combined := schema / "Combined/MISMO_3.4.0_B324.xsd"
+missing := "is missing. The MISMO schema is license-restricted and not in the repository; see mismo/README.md."
 
 # Generate the bindings from the base MISMO schema. xsdata can't resolve the
 # DU extension schemas' no-namespace references, so the DU wrapper is used
 # for validation only (see stage-schema).
 gen-schema:
+    @test -f {{combined}} || { echo "{{combined}} {{missing}}" >&2; exit 1; }
     rm -rf ./mismo/src/mismo/generated
     cd ./mismo/src && uv run --package mismo -- \
         xsdata generate ../schema/ReferenceModel_v3.4.0_B324/Combined/MISMO_3.4.0_B324.xsd \
@@ -20,6 +23,8 @@ gen-schema:
 #   The top-level MISMO_3.4.0_B324.xsd is deliberately not copied.
 # Copies, not symlinks: some tools resolve a symlink to its original folder.
 stage-schema:
+    @test -f {{combined}} || { echo "{{combined}} {{missing}}" >&2; exit 1; }
+    @test -d "{{du}}" || { echo "{{du}} {{missing}}" >&2; exit 1; }
     rm -rf {{staged}}
     mkdir -p {{staged}}
     cp {{schema}}/Combined/*.xsd \

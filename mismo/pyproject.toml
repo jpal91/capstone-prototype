@@ -1,7 +1,7 @@
 [project]
 name = "mismo"
 version = "0.1.0"
-description = "Add your description here"
+description = "MISMO v3.4 data model, mapper, and validation for the supported URLA subset"
 readme = "README.md"
 authors = [
     { name = "Justin Pallansch", email = "pallanschja@gmail.com" }
@@ -13,9 +13,6 @@ dependencies = [
     "pydantic[email]>=2.13.5",
     "lxml>=6.1.3",
 ]
-
-[project.scripts]
-mismo = "mismo:main"
 
 [build-system]
 requires = ["uv_build>=0.12.19,<0.13.0"]

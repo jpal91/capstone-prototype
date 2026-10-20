@@ -23,9 +23,11 @@ All models share ``UrlaModel``'s configuration:
 - JSON keys are camelCase (``firstName``) for the portal; snake_case names
   are also accepted.
 
-Enum values use MISMO v3.4 spellings so the mapper can copy them through
-unchanged, which keeps the round trip lossless (FR-04).
-TODO: verify every enum value against the XSD once it is available.
+Enum values name the URLA's choices. Some match MISMO's spelling and some
+don't (``Checking`` is MISMO ``CheckingAccount``), so the mapper never copies
+them through: each maps to exactly one MISMO value in the tables in
+``convert/mappings.py``, which both directions share, keeping the round trip
+lossless (FR-04).
 
 Docstrings cite the URLA section each model covers. Sections starting with
 "L" are the lender's part of the form; the borrower supplies these as stated
@@ -92,7 +94,7 @@ class USPhone(PhoneNumber):
     """Phone number; US is assumed when no country code is given. Stored as E.164."""
 
     default_region_code = "US"
-    supported_regions = ["US"]  # noqa RUF012
+    supported_regions = ["US"]  # noqa: RUF012
     phone_format = "E164"
 
 
