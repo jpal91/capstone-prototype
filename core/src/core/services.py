@@ -1,8 +1,15 @@
 import hashlib
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Annotated, Literal
 
 from fastapi import HTTPException
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import (
+    AfterValidator,
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    ValidationError,
+)
 from pydantic.alias_generators import to_camel
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
@@ -10,21 +17,57 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from core.audit import append
-from core.storage import AuditAction, Borrower, Draft, Version
+from core.storage import (
+    AuditAction,
+    Borrower,
+    Draft,
+    Grant,
+    Lender,
+    Version,
+)
 from mismo import Urla, UrlaDraft, to_xml, validate
 
 
-class ResponseBase(BaseModel):
+class ServicesBase(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel, validate_by_name=True, validate_by_alias=True
     )
 
 
-class VersionItemResponse(ResponseBase):
+class VersionItemResponse(ServicesBase):
     id: int
     number: int
     sha256: str
     created_at: datetime
+
+
+class LenderResponse(ServicesBase):
+    id: int
+    name: str
+
+
+def _in_future(dt: datetime) -> datetime:
+    if dt <= datetime.now(UTC):
+        raise ValueError("expiresAt must be in the future")
+    return dt
+
+
+class GrantCreateBody(ServicesBase):
+    lender_id: int
+    version_id: int
+    expires_at: Annotated[AwareDatetime, AfterValidator(_in_future)]
+
+
+class GrantResponse(ServicesBase):
+    id: int
+    status: Literal["active", "revoked", "expired"]
+    expires_at: datetime
+    created_at: datetime
+    lender_id: int
+    lender_name: str
+    version_id: int
+    version_number: int
+    revoked_at: datetime | None = None
 
 
 def add_new_draft_service(db: Session, borrower: Borrower, body: UrlaDraft) -> None:
@@ -117,3 +160,65 @@ def version_xml_service(
         raise HTTPException(404, detail="Version id not found")
 
     return res
+
+
+def lenders_service(db: Session) -> list[LenderResponse]:
+    res = db.execute(select(Lender.id, Lender.name).order_by(Lender.name)).all()
+
+    return [LenderResponse(id=r[0], name=r[1]) for r in res]
+
+
+def grant_create_service(
+    db: Session, borrower: Borrower, grant: GrantCreateBody
+) -> GrantResponse:
+    # Check version belongs to borrower
+    try:
+        version_id, version_number = db.execute(
+            select(Version.id, Version.number).where(
+                Version.id == grant.version_id, Version.borrower_id == borrower.id
+            )
+        ).one()
+    except NoResultFound:
+        raise HTTPException(404, detail="Version not found") from None
+
+    # Check lender exists
+    try:
+        lender_id, lender_name = db.execute(
+            select(Lender.id, Lender.name).where(Lender.id == grant.lender_id)
+        ).one()
+    except NoResultFound:
+        raise HTTPException(404, detail="Lender not found") from None
+
+    grant_stmt = (
+        insert(Grant)
+        .values(
+            borrower_id=borrower.id,
+            lender_id=grant.lender_id,
+            version_id=grant.version_id,
+            expires_at=grant.expires_at,
+        )
+        .returning(Grant.id, Grant.created_at)
+    )
+
+    grant_id, created_at = db.execute(grant_stmt).one()
+
+    append(
+        db,
+        AuditAction.Grant,
+        borrower_id=borrower.id,
+        lender_id=grant.lender_id,
+        version_id=grant.version_id,
+        grant_id=grant_id,
+        detail={"expiresAt": grant.expires_at.astimezone(UTC).isoformat()},
+    )
+
+    return GrantResponse(
+        id=grant_id,
+        status="active",
+        expires_at=grant.expires_at,
+        created_at=created_at,
+        lender_id=lender_id,
+        lender_name=lender_name,
+        version_id=version_id,
+        version_number=version_number,
+    )

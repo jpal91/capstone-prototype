@@ -11,10 +11,15 @@ from sqlalchemy import text
 from core.auth import CurrentBorrower, CurrentSession, LoginFailed, verify_login
 from core.db import SessionDep, engine
 from core.services import (
+    GrantCreateBody,
+    GrantResponse,
+    LenderResponse,
     VersionItemResponse,
     add_new_draft_service,
     all_versions_service,
     finalize_draft_service,
+    grant_create_service,
+    lenders_service,
     version_xml_service,
 )
 from core.storage import Base
@@ -100,6 +105,18 @@ def version_xml(db: SessionDep, borrower: CurrentBorrower, version_id: int) -> R
     return Response(
         xml, media_type="application/xml", headers={"X-Content-SHA256": sha256}
     )
+
+
+@app.get("/lenders")
+def lenders(db: SessionDep, _borrower: CurrentBorrower) -> list[LenderResponse]:
+    return lenders_service(db)
+
+
+@app.post("/grants", status_code=201)
+def create_grant(
+    db: SessionDep, borrower: CurrentBorrower, grant: GrantCreateBody
+) -> GrantResponse:
+    return grant_create_service(db, borrower, grant)
 
 
 def main() -> None:

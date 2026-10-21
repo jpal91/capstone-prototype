@@ -1,8 +1,19 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
-from sqlalchemy import DDL, DateTime, Enum, ForeignKey, Index, String, event, func
+from sqlalchemy import (
+    DDL,
+    Case,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    String,
+    case,
+    event,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -32,6 +43,7 @@ class Borrower(Base):
     versions: Mapped[list["Version"]] = relationship(
         back_populates="borrower", order_by="Version.number"
     )
+    grants: Mapped[list["Grant"]] = relationship(back_populates="borrower")
 
 
 class Draft(Base):
@@ -73,6 +85,8 @@ class Lender(Base):
     name: Mapped[str] = mapped_column(unique=True)
     client_id: Mapped[str] = mapped_column(unique=True)
     hashed_secret: Mapped[bytes]
+
+    grants: Mapped[list["Grant"]] = relationship(back_populates="lender")
 
 
 class AuditAction(StrEnum):
@@ -144,6 +158,33 @@ class Version(Base):
     )
 
     borrower: Mapped[Borrower] = relationship(back_populates="versions")
+    grants: Mapped[list["Grant"]] = relationship(back_populates="version")
+
+
+class Grant(Base):
+    __tablename__ = "access_grant"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    borrower_id: Mapped[int] = mapped_column(ForeignKey("borrower.id"))
+    lender_id: Mapped[int] = mapped_column(ForeignKey("lender.id"))
+    version_id: Mapped[int] = mapped_column(ForeignKey("version.id"))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    borrower: Mapped[Borrower] = relationship(back_populates="grants")
+    lender: Mapped[Lender] = relationship(back_populates="grants")
+    version: Mapped[Version] = relationship(back_populates="grants")
+
+    @staticmethod
+    def grant_status() -> Case[Literal["active", "expired", "revoked"]]:
+        return case(
+            (Grant.revoked_at.is_not(None), "revoked"),
+            (Grant.expires_at <= func.now(), "expired"),
+            else_="active",
+        )
 
 
 event.listen(Base.metadata, "before_create", APPEND_ONLY)
