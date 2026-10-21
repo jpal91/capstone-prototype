@@ -29,6 +29,9 @@ class Borrower(Base):
     session: Mapped["AuthSession | None"] = relationship(
         back_populates="borrower", cascade="all, delete-orphan"
     )
+    versions: Mapped[list["Version"]] = relationship(
+        back_populates="borrower", order_by="Version.number"
+    )
 
 
 class Draft(Base):
@@ -80,6 +83,29 @@ class AuditAction(StrEnum):
     FetchDenied = "fetch_denied"
 
 
+# Shared trigger function: blocks UPDATE, DELETE, TRUNCATE on append-only table
+APPEND_ONLY = DDL("""
+CREATE OR REPLACE FUNCTION append_only() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'Table %% is append-only: %% blocked', TG_TABLE_NAME, TG_OP;
+END $$;
+
+""")
+
+
+def triggers(table_name: str) -> DDL:
+    return DDL(f"""\
+CREATE TRIGGER no_update_delete
+    BEFORE UPDATE OR DELETE ON {table_name}
+    FOR EACH ROW EXECUTE FUNCTION append_only();
+
+CREATE TRIGGER no_truncate
+    BEFORE TRUNCATE ON {table_name}
+    FOR EACH STATEMENT EXECUTE FUNCTION append_only();
+""")
+
+
 class AuditEvent(Base):
     __tablename__ = "audit_event"
     __table_args__ = (Index("ix_audit_grant", "grant_id", "seq"),)
@@ -102,20 +128,24 @@ class AuditEvent(Base):
     hash: Mapped[str] = mapped_column(String(64))
 
 
-# Prevents UPDATE, DELETE on AuditEvent
-APPEND_ONLY = DDL("""
-CREATE OR REPLACE FUNCTION audit_event_append_only() RETURNS trigger
-LANGUAGE plpgsql AS $$
-BEGIN
-    RAISE EXCEPTION 'audit_event is append-only: %% blocked', TG_OP;
-END $$;
+class Version(Base):
+    __tablename__ = "version"
+    __table_args__ = (
+        Index("unq_borrower_id_number", "borrower_id", "number", unique=True),
+    )
 
-CREATE TRIGGER audit_event_no_update_delete
-    BEFORE UPDATE OR DELETE ON audit_event
-    FOR EACH ROW EXECUTE FUNCTION audit_event_append_only();
+    id: Mapped[int] = mapped_column(primary_key=True)
+    borrower_id: Mapped[int] = mapped_column(ForeignKey("borrower.id"))
+    number: Mapped[int]
+    xml: Mapped[bytes]
+    sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
-CREATE TRIGGER audit_event_no_truncate
-    BEFORE TRUNCATE ON audit_event
-    FOR EACH STATEMENT EXECUTE FUNCTION audit_event_append_only();
-""")
-event.listen(AuditEvent.__table__, "after_create", APPEND_ONLY)
+    borrower: Mapped[Borrower] = relationship(back_populates="versions")
+
+
+event.listen(Base.metadata, "before_create", APPEND_ONLY)
+event.listen(AuditEvent.__table__, "after_create", triggers("audit_event"))
+event.listen(Version.__table__, "after_create", triggers("version"))
