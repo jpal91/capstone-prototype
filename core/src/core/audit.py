@@ -37,7 +37,7 @@ def append(
     version_id: int | None = None,
     grant_id: int | None = None,
     detail: dict[str, Any] | None = None,
-):
+) -> AuditEvent:
     detail = detail or {}
     db.execute(select(func.pg_advisory_xact_lock(AUDIT_LOCK)))
 
@@ -75,14 +75,14 @@ def verify_chain(db: Session) -> ChainCheck:
     prev_hash = GENESIS
     n = len(chain)
 
-    for i, event in enumerate(chain):
+    for event in chain:
         if event.prev_hash != prev_hash:
-            return ChainCheck(ok=False, entries=n, first_bad_seq=i)
+            return ChainCheck(ok=False, entries=n, first_bad_seq=event.seq)
 
         expected = entry_hash(event)
 
         if event.hash != expected:
-            return ChainCheck(ok=False, entries=n, first_bad_seq=i)
+            return ChainCheck(ok=False, entries=n, first_bad_seq=event.seq)
 
         prev_hash = expected
 
