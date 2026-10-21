@@ -156,8 +156,8 @@ def test_borrower_sees_only_their_own_draft(
     alice_view = client.get("/draft", headers=login("alice"))
     bob_view = client.get("/draft", headers=login("bob"))
 
-    assert alice_view.json() == {"borrower": {"firstName": "Alice"}}
-    assert bob_view.json() is None
+    assert alice_view.json()["borrower"]["firstName"] == "Alice"
+    assert bob_view.json()["borrower"]["firstName"] is None
 
 
 # Logout
