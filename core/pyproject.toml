@@ -13,6 +13,8 @@ dependencies = [
     "mismo",
     "psycopg[binary]>=3.3.6",
     "python-dotenv>=1.2.4",
+    "pwdlib[argon2]>=0.3.1",
+    "pydantic>=2.13.5",
 ]
 
 [tool.uv.sources]

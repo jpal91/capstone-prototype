@@ -20,6 +20,9 @@ class Borrower(Base):
     draft: Mapped["Draft | None"] = relationship(
         back_populates="borrower", cascade="all, delete-orphan"
     )
+    session: Mapped["AuthSession | None"] = relationship(
+        back_populates="borrower", cascade="all, delete-orphan"
+    )
 
 
 class Draft(Base):
@@ -35,3 +38,20 @@ class Draft(Base):
     )
 
     borrower: Mapped["Borrower"] = relationship(back_populates="draft")
+
+
+class AuthSession(Base):
+    __tablename__ = "session"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token_hash: Mapped[bytes] = mapped_column(unique=True)
+    borrower_id: Mapped[int] = mapped_column(ForeignKey("borrower.id"), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    update_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    borrower: Mapped["Borrower"] = relationship(back_populates="session")
