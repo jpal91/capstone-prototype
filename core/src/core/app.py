@@ -16,9 +16,11 @@ from core.services import (
     LenderResponse,
     VersionItemResponse,
     add_new_draft_service,
+    all_grants_service,
     all_versions_service,
     finalize_draft_service,
     grant_create_service,
+    grant_revoke_service,
     lenders_service,
     version_xml_service,
 )
@@ -112,11 +114,23 @@ def lenders(db: SessionDep, _borrower: CurrentBorrower) -> list[LenderResponse]:
     return lenders_service(db)
 
 
+@app.get("/grants")
+def grants(db: SessionDep, borrower: CurrentBorrower) -> list[GrantResponse]:
+    return all_grants_service(db, borrower)
+
+
 @app.post("/grants", status_code=201)
 def create_grant(
     db: SessionDep, borrower: CurrentBorrower, grant: GrantCreateBody
 ) -> GrantResponse:
     return grant_create_service(db, borrower, grant)
+
+
+@app.post("/grants/{grant_id}/revoke")
+def revoke_grant(
+    db: SessionDep, borrower: CurrentBorrower, grant_id: int
+) -> GrantResponse:
+    return grant_revoke_service(db, borrower, grant_id)
 
 
 def main() -> None:

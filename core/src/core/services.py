@@ -11,7 +11,7 @@ from pydantic import (
     ValidationError,
 )
 from pydantic.alias_generators import to_camel
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -222,3 +222,74 @@ def grant_create_service(
         version_id=version_id,
         version_number=version_number,
     )
+
+
+def _grants_query():
+    return (
+        select(
+            Grant.id,
+            Grant.grant_status().label("status"),
+            Grant.expires_at,
+            Grant.created_at,
+            Grant.revoked_at,
+            Lender.id.label("lender_id"),
+            Lender.name.label("lender_name"),
+            Version.id.label("version_id"),
+            Version.number.label("version_number"),
+        )
+        .join(Grant.lender)
+        .join(Grant.version)
+    )
+
+
+def _grant_response(row) -> GrantResponse:
+    return GrantResponse.model_validate(row._mapping)  # matched by name
+
+
+def all_grants_service(db: Session, borrower: Borrower) -> list[GrantResponse]:
+    stmt = _grants_query().where(Grant.borrower_id == borrower.id).order_by(Grant.id)
+
+    res = db.execute(stmt).all()
+
+    return [_grant_response(r) for r in res]
+
+
+def grant_revoke_service(
+    db: Session, borrower: Borrower, grant_id: int
+) -> GrantResponse:
+    stmt = (
+        update(Grant)
+        .values(revoked_at=func.now())
+        .where(
+            Grant.id == grant_id,
+            Grant.borrower_id == borrower.id,
+            Grant.revoked_at.is_(None),
+        )
+        .returning(Grant.revoked_at)
+    )
+
+    revoked_at = db.scalar(stmt)
+
+    stmt = _grants_query().where(Grant.id == grant_id, Grant.borrower_id == borrower.id)
+
+    try:
+        grant = db.execute(stmt).one()
+    except NoResultFound:
+        raise HTTPException(404, detail="Grant not found") from None
+
+    res = _grant_response(grant)
+
+    if revoked_at is None:
+        return res
+
+    append(
+        db,
+        AuditAction.Revoke,
+        borrower_id=borrower.id,
+        lender_id=res.lender_id,
+        version_id=res.version_id,
+        grant_id=res.id,
+        detail={},
+    )
+
+    return res
