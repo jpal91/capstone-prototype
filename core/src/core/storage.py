@@ -55,3 +55,12 @@ class AuthSession(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     borrower: Mapped["Borrower"] = relationship(back_populates="session")
+
+
+class Lender(Base):
+    __tablename__ = "lender"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+    client_id: Mapped[str] = mapped_column(unique=True)
+    hashed_secret: Mapped[bytes]
