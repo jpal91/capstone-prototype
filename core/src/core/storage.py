@@ -97,29 +97,6 @@ class AuditAction(StrEnum):
     FetchDenied = "fetch_denied"
 
 
-# Shared trigger function: blocks UPDATE, DELETE, TRUNCATE on append-only table
-APPEND_ONLY = DDL("""
-CREATE OR REPLACE FUNCTION append_only() RETURNS trigger
-LANGUAGE plpgsql AS $$
-BEGIN
-    RAISE EXCEPTION 'Table %% is append-only: %% blocked', TG_TABLE_NAME, TG_OP;
-END $$;
-
-""")
-
-
-def triggers(table_name: str) -> DDL:
-    return DDL(f"""\
-CREATE TRIGGER no_update_delete
-    BEFORE UPDATE OR DELETE ON {table_name}
-    FOR EACH ROW EXECUTE FUNCTION append_only();
-
-CREATE TRIGGER no_truncate
-    BEFORE TRUNCATE ON {table_name}
-    FOR EACH STATEMENT EXECUTE FUNCTION append_only();
-""")
-
-
 class AuditEvent(Base):
     __tablename__ = "audit_event"
     __table_args__ = (Index("ix_audit_grant", "grant_id", "seq"),)
@@ -187,6 +164,56 @@ class Grant(Base):
         )
 
 
+# Shared trigger function: blocks UPDATE, DELETE, TRUNCATE on append-only table
+APPEND_ONLY = DDL("""
+CREATE OR REPLACE FUNCTION append_only() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'Table %% is append-only: %% blocked', TG_TABLE_NAME, TG_OP;
+END $$;
+
+""")
+
+
+def triggers(table_name: str) -> DDL:
+    return DDL(f"""\
+CREATE TRIGGER no_update_delete
+    BEFORE UPDATE OR DELETE ON {table_name}
+    FOR EACH ROW EXECUTE FUNCTION append_only();
+
+CREATE TRIGGER no_truncate
+    BEFORE TRUNCATE ON {table_name}
+    FOR EACH STATEMENT EXECUTE FUNCTION append_only();
+""")
+
+
 event.listen(Base.metadata, "before_create", APPEND_ONLY)
 event.listen(AuditEvent.__table__, "after_create", triggers("audit_event"))
 event.listen(Version.__table__, "after_create", triggers("version"))
+
+GRANT_REVOKE_ONLY = DDL("""
+CREATE OR REPLACE FUNCTION grant_revoke_only() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        RAISE EXCEPTION 'access_grant: grants are revoked, never deleted';
+    END IF;
+    IF OLD.revoked_at IS NOT NULL
+       OR NEW.revoked_at IS NULL
+       OR (NEW.id, NEW.borrower_id, NEW.lender_id, NEW.version_id, NEW.expires_at, NEW.created_at)
+          IS DISTINCT FROM
+          (OLD.id, OLD.borrower_id, OLD.lender_id, OLD.version_id, OLD.expires_at, OLD.created_at)
+    THEN
+        RAISE EXCEPTION 'access_grant: the only allowed change is revoking an unrevoked grant';
+    END IF;
+    RETURN NEW;
+END $$;
+
+CREATE TRIGGER revoke_only BEFORE UPDATE OR DELETE ON access_grant
+    FOR EACH ROW EXECUTE FUNCTION grant_revoke_only();
+
+CREATE TRIGGER no_truncate BEFORE TRUNCATE ON access_grant
+    FOR EACH STATEMENT EXECUTE FUNCTION append_only();
+""")
+
+event.listen(Grant.__table__, "after_create", GRANT_REVOKE_ONLY)
