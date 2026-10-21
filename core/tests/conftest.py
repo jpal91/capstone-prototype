@@ -28,7 +28,7 @@ from sqlalchemy.orm import Session
 from core.app import app
 from core.auth import HASHER
 from core.db import engine, get_session
-from core.storage import Base, Borrower
+from core.storage import Base, Borrower, Lender
 
 PASSWORD = "correct horse battery staple"
 
@@ -91,6 +91,19 @@ def make_borrower(db: Session) -> Callable[[str], Borrower]:
         db.add(borrower)
         db.flush()
         return borrower
+
+    return make
+
+
+@pytest.fixture
+def make_lender(db: Session) -> Callable[[str], Lender]:
+    """Create a lender. Its credentials are placeholders until the lender API."""
+
+    def make(name: str) -> Lender:
+        lender = Lender(name=name, client_id=name.lower(), hashed_secret=b"unused")
+        db.add(lender)
+        db.flush()
+        return lender
 
     return make
 
