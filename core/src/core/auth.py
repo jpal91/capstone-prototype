@@ -8,6 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pwdlib import PasswordHash
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
 
 from core.db import SessionDep
 from core.storage import AuthSession, Borrower
@@ -28,7 +29,7 @@ def hash_token(token: str) -> bytes:
     return sha256(token.encode()).digest()
 
 
-def verify_login(db: SessionDep, username: str, pwd: str) -> str:
+def verify_login(db: Session, username: str, pwd: str) -> str:
     borrower_stmt = select(Borrower).where(Borrower.username == username)
     borrower = db.scalars(borrower_stmt).first()
 
