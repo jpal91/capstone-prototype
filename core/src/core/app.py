@@ -1,15 +1,22 @@
 import os
 from contextlib import asynccontextmanager
-from typing import Any
+from datetime import UTC, datetime
+from email.utils import format_datetime
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
-from sqlalchemy import text
+from sqlalchemy import func, text
+from sqlalchemy.dialects.postgresql import insert
 
 from core.auth import CurrentBorrower, CurrentSession, LoginFailed, verify_login
 from core.db import SessionDep, engine
-from core.storage import Base
+from core.storage import Base, Draft
+from mismo import UrlaDraft
+
+
+def http_date(dt: datetime) -> str:
+    return format_datetime(dt.astimezone(UTC), usegmt=True)
 
 
 @asynccontextmanager
@@ -53,9 +60,23 @@ def logout(db: SessionDep, auth: CurrentSession) -> None:
 
 
 @app.get("/draft")
-def get_draft(borrower: CurrentBorrower) -> dict[str, Any] | None:
-    if borrower.draft:
-        return borrower.draft.data
+def get_draft(borrower: CurrentBorrower, response: Response) -> UrlaDraft:
+    if borrower.draft is None:
+        return UrlaDraft()
+
+    response.headers["Last-Modified"] = http_date(borrower.draft.updated_at)
+    return UrlaDraft.model_validate(borrower.draft.data)
+
+
+@app.put("/draft", status_code=204)
+def put_draft(db: SessionDep, borrower: CurrentBorrower, body: UrlaDraft) -> None:
+    data = body.model_dump(mode="json", by_alias=True, exclude_none=True)
+    stmt = insert(Draft).values(data=data, borrower_id=borrower.id)
+    stmt = stmt.on_conflict_do_update(
+        index_elements=[Draft.borrower_id],
+        set_={"data": data, "updated_at": func.now()},
+    )
+    db.execute(stmt)
 
 
 def main() -> None:
