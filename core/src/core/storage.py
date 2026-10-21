@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, func
+from sqlalchemy import DDL, DateTime, Enum, ForeignKey, Index, String, event, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -100,3 +100,22 @@ class AuditEvent(Base):
     detail: Mapped[dict[str, Any]] = mapped_column(JSONB)
     prev_hash: Mapped[str] = mapped_column(String(64), unique=True)
     hash: Mapped[str] = mapped_column(String(64))
+
+
+# Prevents UPDATE, DELETE on AuditEvent
+APPEND_ONLY = DDL("""
+CREATE OR REPLACE FUNCTION audit_event_append_only() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'audit_event is append-only: %% blocked', TG_OP;
+END $$;
+
+CREATE TRIGGER audit_event_no_update_delete
+    BEFORE UPDATE OR DELETE ON audit_event
+    FOR EACH ROW EXECUTE FUNCTION audit_event_append_only();
+
+CREATE TRIGGER audit_event_no_truncate
+    BEFORE TRUNCATE ON audit_event
+    FOR EACH STATEMENT EXECUTE FUNCTION audit_event_append_only();
+""")
+event.listen(AuditEvent.__table__, "after_create", APPEND_ONLY)
