@@ -8,7 +8,7 @@ missing := "is missing. The MISMO schema is license-restricted and not in the re
 # DU extension schemas' no-namespace references, so the DU wrapper is used
 # for validation only (see stage-schema).
 gen-schema:
-    @test -f {{combined}} || { echo "{{combined}} {{missing}}" >&2; exit 1; }
+    @test -f {{ combined }} || { echo "{{ combined }} {{ missing }}" >&2; exit 1; }
     rm -rf ./mismo/src/mismo/generated
     cd ./mismo/src && uv run --package mismo -- \
         xsdata generate ../schema/ReferenceModel_v3.4.0_B324/Combined/MISMO_3.4.0_B324.xsd \
@@ -23,13 +23,16 @@ gen-schema:
 #   The top-level MISMO_3.4.0_B324.xsd is deliberately not copied.
 # Copies, not symlinks: some tools resolve a symlink to its original folder.
 stage-schema:
-    @test -f {{combined}} || { echo "{{combined}} {{missing}}" >&2; exit 1; }
-    @test -d "{{du}}" || { echo "{{du}} {{missing}}" >&2; exit 1; }
-    rm -rf {{staged}}
-    mkdir -p {{staged}}
-    cp {{schema}}/Combined/*.xsd \
-        {{schema}}/MISMODataTypesB324.xsd \
-        {{schema}}/MISMOEnumeratedTypesB324.xsd \
-        {{schema}}/MISMOExtensionDetailsB324.xsd \
-        "{{du}}"/*.xsd \
-        {{staged}}/
+    @test -f {{ combined }} || { echo "{{ combined }} {{ missing }}" >&2; exit 1; }
+    @test -d "{{ du }}" || { echo "{{ du }} {{ missing }}" >&2; exit 1; }
+    rm -rf {{ staged }}
+    mkdir -p {{ staged }}
+    cp {{ schema }}/Combined/*.xsd \
+        {{ schema }}/MISMODataTypesB324.xsd \
+        {{ schema }}/MISMOEnumeratedTypesB324.xsd \
+        {{ schema }}/MISMOExtensionDetailsB324.xsd \
+        "{{ du }}"/*.xsd \
+        {{ staged }}/
+
+api-dev:
+    uv run --package core fastapi dev core/src/core/app.py
