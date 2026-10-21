@@ -6,12 +6,18 @@ from email.utils import format_datetime
 import uvicorn
 from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
-from sqlalchemy import func, text
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import text
 
 from core.auth import CurrentBorrower, CurrentSession, LoginFailed, verify_login
 from core.db import SessionDep, engine
-from core.storage import Base, Draft
+from core.services import (
+    VersionItemResponse,
+    add_new_draft_service,
+    all_versions_service,
+    finalize_draft_service,
+    version_xml_service,
+)
+from core.storage import Base
 from mismo import UrlaDraft
 
 
@@ -70,13 +76,30 @@ def get_draft(borrower: CurrentBorrower, response: Response) -> UrlaDraft:
 
 @app.put("/draft", status_code=204)
 def put_draft(db: SessionDep, borrower: CurrentBorrower, body: UrlaDraft) -> None:
-    data = body.model_dump(mode="json", by_alias=True, exclude_none=True)
-    stmt = insert(Draft).values(data=data, borrower_id=borrower.id)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=[Draft.borrower_id],
-        set_={"data": data, "updated_at": func.now()},
+    add_new_draft_service(db, borrower, body)
+
+
+@app.post("/draft/finalize", status_code=201)
+def finalize_draft(db: SessionDep, borrower: CurrentBorrower) -> VersionItemResponse:
+    return finalize_draft_service(db, borrower)
+
+
+@app.get("/versions")
+def versions(db: SessionDep, borrower: CurrentBorrower) -> list[VersionItemResponse]:
+    return all_versions_service(db, borrower)
+
+
+@app.get(
+    "/versions/{version_id}/xml",
+    response_class=Response,
+    responses={200: {"content": {"application/xml": {}}}},
+)
+def version_xml(db: SessionDep, borrower: CurrentBorrower, version_id: int) -> Response:
+    sha256, xml = version_xml_service(db, borrower, version_id)
+
+    return Response(
+        xml, media_type="application/xml", headers={"X-Content-SHA256": sha256}
     )
-    db.execute(stmt)
 
 
 def main() -> None:
