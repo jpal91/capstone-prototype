@@ -7,6 +7,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from pydantic_core import ErrorDetails
 from sqlalchemy import text
 
 from core.auth import (
@@ -96,7 +97,13 @@ def put_draft(db: SessionDep, borrower: CurrentBorrower, body: UrlaDraft) -> Non
     add_new_draft_service(db, borrower, body)
 
 
-@app.post("/draft/finalize", status_code=201)
+@app.post(
+    "/draft/finalize",
+    status_code=201,
+    responses={
+        422: {"model": list[ErrorDetails]},
+    },
+)
 def finalize_draft(db: SessionDep, borrower: CurrentBorrower) -> VersionItemResponse:
     return finalize_draft_service(db, borrower)
 

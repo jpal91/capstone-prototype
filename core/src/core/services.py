@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Literal
 
 from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
 from pydantic import (
     AfterValidator,
     AwareDatetime,
@@ -89,14 +90,13 @@ def add_new_draft_service(db: Session, borrower: Borrower, body: UrlaDraft) -> N
 
 
 def finalize_draft_service(db: Session, borrower: Borrower) -> VersionItemResponse:
-    if not borrower.draft:
-        raise HTTPException(422, detail="Borrower draft does not exist")
+    data = borrower.draft.data if borrower.draft else {}
 
     try:
-        urla = Urla.model_validate(borrower.draft.data)
+        urla = Urla.model_validate(data)
     except ValidationError as e:
-        raise HTTPException(
-            422, detail=e.errors(include_url=False, include_context=False)
+        raise RequestValidationError(
+            e.errors(include_url=False, include_context=False, include_input=False)
         ) from None
 
     xml = to_xml(urla)
