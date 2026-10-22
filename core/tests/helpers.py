@@ -4,6 +4,8 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
+from core.storage import Lender
+
 # A draft that passes the strict model. Synthetic (NFR-06).
 COMPLETE: dict[str, Any] = {
     "borrower": {
@@ -56,3 +58,12 @@ def finalize(
     response = client.post("/draft/finalize", headers=headers)
     assert response.status_code == 201, response.text
     return response.json()
+
+
+def lender_secret(client_id: str) -> str:
+    return f"{client_id}-test-secret"
+
+
+def lender_auth(lender: Lender) -> tuple[str, str]:
+    """HTTP Basic credentials for `make_lender`'s lender, for `auth=`."""
+    return lender.client_id, lender_secret(lender.client_id)

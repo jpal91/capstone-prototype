@@ -26,9 +26,10 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from core.app import app
-from core.auth import HASHER
+from core.auth import HASHER, hash_token
 from core.db import engine, get_session
 from core.storage import Base, Borrower, Lender
+from helpers import lender_secret
 
 PASSWORD = "correct horse battery staple"
 
@@ -97,10 +98,15 @@ def make_borrower(db: Session) -> Callable[[str], Borrower]:
 
 @pytest.fixture
 def make_lender(db: Session) -> Callable[[str], Lender]:
-    """Create a lender. Its credentials are placeholders until the lender API."""
+    """Create a lender whose secret is `lender_secret(lender.client_id)`."""
 
     def make(name: str) -> Lender:
-        lender = Lender(name=name, client_id=name.lower(), hashed_secret=b"unused")
+        client_id = name.lower().replace(" ", "-")
+        lender = Lender(
+            name=name,
+            client_id=client_id,
+            hashed_secret=hash_token(lender_secret(client_id)),
+        )
         db.add(lender)
         db.flush()
         return lender
