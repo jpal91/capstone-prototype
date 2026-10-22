@@ -6,8 +6,8 @@ import { createSession, deleteSession, getToken } from "@/app/lib/session"
 import { publicCore } from "@/app/lib/core/client"
 
 const LoginFormSchema = z.object({
-  username: z.string(),
-  password: z.string()
+  username: z.string().min(1),
+  password: z.string().min(1)
 })
 
 export type FormState =
