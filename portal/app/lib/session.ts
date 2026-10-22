@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 import { cookies } from 'next/headers'
 
 export const requireSession = async () => {
@@ -38,7 +38,6 @@ export const logout = async () => {
   const session = cookieStore.get("session")
 
   if (!session) {
-    // redirect("/")
     return
   }
 
@@ -46,14 +45,19 @@ export const logout = async () => {
   cookieStore.delete("session")
 
   try {
-    fetch("http://127.0.0.1:8000/auth/logout", {
+    const res = await fetch("http://127.0.0.1:8000/auth/logout", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
       }
     })
-  } catch {}
 
-  // redirect("/")
+    if (!res.ok) {
+      console.error("Logout failed with ", res.status)
+    }
+  } catch (e) {
+    console.error(e)
+  }
+
   return
 }

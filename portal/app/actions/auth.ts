@@ -1,9 +1,8 @@
 "use server"
-import 'server-only'
 import * as z from 'zod'
 import { redirect } from "next/navigation"
 
-import { createSession } from "@/app/lib/session"
+import { createSession, logout } from "@/app/lib/session"
 
 const LoginFormSchema = z.object({
   username: z.string(),
@@ -65,4 +64,9 @@ export const loginUser = async (_state: FormState, form: FormData) => {
 
 
   redirect("/dashboard")
+}
+
+export const logoutUser = async () => {
+  await logout()
+  redirect("/")
 }

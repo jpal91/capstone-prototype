@@ -1,6 +1,4 @@
-"use client"
-import { logout } from "@/app/lib/session"
-import { redirect } from "next/navigation"
+import { logoutUser } from '@/app/actions/auth'
 
 const NavBar = () => {
   return (
@@ -8,16 +6,12 @@ const NavBar = () => {
       <div className="flex-1">
         <a className="btn btn-ghost text-xl">OneApp</a>
       </div>
-      <div className="flex-none">
+      <form className="flex-none" action={logoutUser}>
         <button className="btn"
-          onClick={() => {
-            logout()
-            redirect("/")
-          }}
         >
           Logout
         </button>
-      </div>
+      </form>
     </div>
   )
 }
