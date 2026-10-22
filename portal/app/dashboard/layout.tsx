@@ -1,7 +1,7 @@
 
 const DashboardLayout = ({ children }: LayoutProps<'/dashboard'>) => {
   return (
-    <main></main>
+    <main>{children}</main>
   )
 }
 

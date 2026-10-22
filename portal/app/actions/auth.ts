@@ -29,7 +29,7 @@ export const loginUser = async (_state: FormState, form: FormData) => {
 
   if (!validatedFields.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors
+      errors: z.flattenError(validatedFields.error).fieldErrors
     }
   }
 
@@ -39,6 +39,7 @@ export const loginUser = async (_state: FormState, form: FormData) => {
   try {
     const res = await fetch("http://127.0.0.1:8000/auth/login", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username,
         password
@@ -46,8 +47,11 @@ export const loginUser = async (_state: FormState, form: FormData) => {
     })
 
     if (!res.ok) {
+      const msg = await res.json()
+      console.error(msg)
+
       return {
-        message: res.statusText
+        message: "Invalid username or password"
       }
     }
 
