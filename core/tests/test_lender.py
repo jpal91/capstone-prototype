@@ -2,8 +2,9 @@
 grant (FR-07), authenticating with its own credentials (NFR-03).
 
 Also: grants and revokes take effect end to end (FR-05, FR-06), every fetch and
-denied fetch is audited with the real reason (NFR-04), and every denial looks
-the same from outside, including a grant that doesn't exist.
+denied fetch is audited with the real reason (NFR-04), every denial looks the
+same from outside, including a grant that doesn't exist, and the borrower sees
+when each grant was last fetched (FR-08).
 """
 
 import hashlib
@@ -473,3 +474,89 @@ def test_chain_verifies_after_fetches_and_denials(
         AuditAction.FetchDenied,
         AuditAction.FetchDenied,
     ]
+
+
+# When each lender last fetched (FR-08), read from the audit log.
+# now() is frozen per test, so every fetch in a test has the same `at`: these
+# tests can't tell "newest fetch" from "any fetch", only fetched from not.
+
+
+def last_fetched(client: TestClient, s: Setup) -> dict[int, str | None]:
+    grants = client.get("/grants", headers=s.headers).json()
+    return {g["id"]: g["lastFetchedAt"] for g in grants}
+
+
+def fetched_at(db: Session) -> datetime:
+    [event] = events(db, AuditAction.Fetch)
+    return event.at
+
+
+def test_new_grant_has_not_been_fetched(client: TestClient, setup: Setup) -> None:
+    response = client.post(
+        "/grants",
+        headers=setup.headers,
+        json={
+            "lenderId": setup.a.id,
+            "versionId": setup.version_id,
+            "expiresAt": (datetime.now(UTC) + timedelta(days=7)).isoformat(),
+        },
+    )
+
+    assert response.json()["lastFetchedAt"] is None
+    assert last_fetched(client, setup) == {response.json()["id"]: None}
+
+
+def test_fetch_sets_last_fetched_at_from_the_audit_entry(
+    client: TestClient, db: Session, setup: Setup
+) -> None:
+    grant_id = grant(client, setup, setup.a)
+
+    fetch(client, setup.a, grant_id)
+
+    listed = datetime.fromisoformat(last_fetched(client, setup)[grant_id] or "")
+    assert listed == fetched_at(db)
+
+
+@pytest.mark.parametrize(("arrange", "reason"), DENIALS[:-1], ids=DENIAL_IDS[:-1])
+def test_denied_fetches_dont_count(
+    client: TestClient,
+    db: Session,
+    setup: Setup,
+    arrange: Callable[..., tuple[Lender, int]],
+    reason: str,
+) -> None:
+    lender, grant_id = arrange(client, db, setup)
+
+    assert fetch(client, lender, grant_id).status_code == 404
+
+    assert last_fetched(client, setup)[grant_id] is None
+
+
+def test_last_fetched_at_is_per_grant(client: TestClient, setup: Setup) -> None:
+    a = grant(client, setup, setup.a)
+    b = grant(client, setup, setup.b)
+    a_again = grant(client, setup, setup.a)
+
+    fetch(client, setup.a, a)
+
+    listed = last_fetched(client, setup)
+    assert listed[a] is not None
+    assert listed[b] is None
+    assert listed[a_again] is None  # same lender, different grant
+
+
+def test_l01_revoked_grant_still_shows_its_earlier_fetch(
+    client: TestClient, db: Session, setup: Setup
+) -> None:
+    # Revoking stops future fetches; the copy already fetched stays with the
+    # lender, and the borrower can see that it was fetched.
+    grant_id = grant(client, setup, setup.a)
+    fetch(client, setup.a, grant_id)
+
+    response = client.post(f"/grants/{grant_id}/revoke", headers=setup.headers)
+    fetch(client, setup.a, grant_id)  # denied, and doesn't count
+
+    revoked = response.json()
+    assert revoked["status"] == "revoked"
+    assert datetime.fromisoformat(revoked["lastFetchedAt"]) == fetched_at(db)
+    assert last_fetched(client, setup)[grant_id] == revoked["lastFetchedAt"]

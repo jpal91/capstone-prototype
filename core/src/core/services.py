@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 from core.audit import append
 from core.storage import (
     AuditAction,
+    AuditEvent,
     Borrower,
     Draft,
     Grant,
@@ -68,6 +69,7 @@ class GrantResponse(ServicesBase):
     version_id: int
     version_number: int
     revoked_at: datetime | None = None
+    last_fetched_at: datetime | None = None
 
 
 class LenderGrantResponse(ServicesBase):
@@ -176,7 +178,7 @@ def lenders_service(db: Session) -> list[LenderResponse]:
 
 def lender_grants_service(db: Session, lender: Lender) -> list[LenderGrantResponse]:
     stmt = (
-        select(Grant.id, Grant.expires_at, Version.sha256)
+        select(Grant.id.label("grant_id"), Grant.expires_at, Version.sha256)
         .join(Grant.version)
         .where(Grant.grant_status() == "active", Grant.lender_id == lender.id)
         .order_by(Grant.id)
@@ -290,6 +292,13 @@ def grant_create_service(
 
 
 def _grants_query():
+    last_fetched = (
+        select(func.max(AuditEvent.at))
+        .where(AuditEvent.grant_id == Grant.id, AuditEvent.action == AuditAction.Fetch)
+        .correlate(Grant)
+        .scalar_subquery()
+    )
+
     return (
         select(
             Grant.id,
@@ -301,6 +310,7 @@ def _grants_query():
             Lender.name.label("lender_name"),
             Version.id.label("version_id"),
             Version.number.label("version_number"),
+            last_fetched.label("last_fetched_at"),
         )
         .join(Grant.lender)
         .join(Grant.version)
