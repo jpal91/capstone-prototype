@@ -1,0 +1,4 @@
+packages:
+  - portal
+allowBuilds:
+  unrs-resolver: true
