@@ -2,3 +2,4 @@ packages:
   - portal
 allowBuilds:
   unrs-resolver: true
+  sharp: true
