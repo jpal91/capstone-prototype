@@ -1,5 +1,6 @@
 import "server-only"
 import { cookies } from 'next/headers'
+import { apiFetch } from "./api"
 
 export const requireSession = async () => {
   const cookieStore = await cookies()
@@ -45,19 +46,13 @@ export const logout = async () => {
   cookieStore.delete("session")
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/auth/logout", {
+    await apiFetch("/auth/logout", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
       }
     })
-
-    if (!res.ok) {
-      console.error("Logout failed with ", res.status)
-    }
-  } catch (e) {
-    console.error(e)
-  }
+  } catch {}
 
   return
 }

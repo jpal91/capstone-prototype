@@ -3,6 +3,7 @@ import * as z from 'zod'
 import { redirect } from "next/navigation"
 
 import { createSession, logout } from "@/app/lib/session"
+import { apiFetch } from "@/app/lib/api"
 
 const LoginFormSchema = z.object({
   username: z.string(),
@@ -36,7 +37,7 @@ export const loginUser = async (_state: FormState, form: FormData) => {
 
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/auth/login", {
+    const res = await apiFetch<{ token: string }>("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -46,15 +47,12 @@ export const loginUser = async (_state: FormState, form: FormData) => {
     })
 
     if (!res.ok) {
-      const msg = await res.json()
-      console.error(msg)
-
       return {
-        message: "Invalid username or password"
+        message: res.status === 401 ? "Invalid username or password" : "Could not log in, try again"
       }
     }
 
-    const { token } = await res.json()
+    const { token } = res.msg
     await createSession(token)
   } catch {
     return {
