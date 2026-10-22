@@ -36,3 +36,12 @@ stage-schema:
 
 api-dev:
     uv run --package core fastapi dev core/src/core/app.py
+
+# Regenerate the portal's typed core client from core's OpenAPI spec. Run after
+# changing core's routes or models, and commit both files: the portal image
+# builds without Python or the MISMO bindings that importing core needs.
+gen-api:
+    mkdir -p ./portal/app/lib/core
+    uv run --package core python -c "import json; from core.app import app; \
+        open('./portal/app/lib/core/openapi.json', 'w').write(json.dumps(app.openapi(), indent=2) + '\n')"
+    cd portal && pnpm exec openapi-typescript app/lib/core/openapi.json -o app/lib/core/schema.d.ts

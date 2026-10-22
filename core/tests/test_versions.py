@@ -201,7 +201,10 @@ def test_finalize_without_a_draft_is_422(
 
     response = client.post("/draft/finalize", headers=headers)
 
+    # No saved draft is validated as an empty one, so the body has the same
+    # shape as any other incomplete draft.
     assert response.status_code == 422
+    assert ["borrower"] in [error["loc"] for error in response.json()["detail"]]
     assert stored_versions(db, borrower) == []
     assert finalize_events(db) == []
 
@@ -239,6 +242,8 @@ def test_incomplete_draft_is_422_with_the_field_and_nothing_stored(
 
     assert response.status_code == 422
     assert loc in [error["loc"] for error in response.json()["detail"]]
+    # Errors don't echo the borrower's values back.
+    assert all("input" not in error for error in response.json()["detail"])
     assert stored_versions(db, borrower) == []
     assert finalize_events(db) == []
 

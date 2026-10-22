@@ -1,6 +1,5 @@
 import "server-only"
 import { cookies } from 'next/headers'
-import { apiFetch } from "./api"
 
 export const requireSession = async () => {
   const cookieStore = await cookies()
@@ -34,25 +33,7 @@ export async function createSession(token: string) {
   })
 }
 
-export const logout = async () => {
+export async function deleteSession() {
   const cookieStore = await cookies()
-  const session = cookieStore.get("session")
-
-  if (!session) {
-    return
-  }
-
-  const token = session.value
   cookieStore.delete("session")
-
-  try {
-    await apiFetch("/auth/logout", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    })
-  } catch {}
-
-  return
 }

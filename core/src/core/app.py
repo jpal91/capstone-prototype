@@ -7,7 +7,6 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from pydantic_core import ErrorDetails
 from sqlalchemy import text
 
 from core.auth import (
@@ -61,6 +60,18 @@ class LoginResponse(BaseModel):
     token: str
 
 
+class FieldError(BaseModel):
+    type: str
+    loc: list[str | int]
+    msg: str
+
+
+class ValidationErrorBody(BaseModel):
+    """The body FastAPI sends for a RequestValidationError."""
+
+    detail: list[FieldError]
+
+
 @app.get("/health")
 def health(session: SessionDep) -> dict[str, str]:
     session.execute(text("SELECT 1"))
@@ -100,9 +111,7 @@ def put_draft(db: SessionDep, borrower: CurrentBorrower, body: UrlaDraft) -> Non
 @app.post(
     "/draft/finalize",
     status_code=201,
-    responses={
-        422: {"model": list[ErrorDetails]},
-    },
+    responses={422: {"model": ValidationErrorBody}},
 )
 def finalize_draft(db: SessionDep, borrower: CurrentBorrower) -> VersionItemResponse:
     return finalize_draft_service(db, borrower)

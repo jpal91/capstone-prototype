@@ -2,8 +2,8 @@
 import * as z from 'zod'
 import { redirect } from "next/navigation"
 
-import { createSession, logout } from "@/app/lib/session"
-import { apiFetch } from "@/app/lib/api"
+import { createSession, deleteSession, getToken } from "@/app/lib/session"
+import { publicCore } from "@/app/lib/core/client"
 
 const LoginFormSchema = z.object({
   username: z.string(),
@@ -37,26 +37,24 @@ export const loginUser = async (_state: FormState, form: FormData) => {
 
 
   try {
-    const res = await apiFetch<{ token: string }>("/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username,
-        password
-      })
+    const { data, error, response } = await publicCore.POST("/auth/login", {
+      body: { username, password }
     })
 
-    if (!res.ok) {
+    if (error) {
+      console.error("login failed with status", response.status)
+
       return {
-        message: res.status === 401 ? "Invalid username or password" : "Could not log in, try again"
+        message: response.status === 401 ? "Invalid username or password" : "Could not log in, try again"
       }
     }
 
-    const { token } = res.msg
-    await createSession(token)
-  } catch {
+    await createSession(data.token)
+  } catch (e) {
+    console.error("login request failed:", e)
+
     return {
-      message: "Could not login, try again"
+      message: "Could not log in, try again"
     }
   }
 
@@ -65,6 +63,19 @@ export const loginUser = async (_state: FormState, form: FormData) => {
 }
 
 export const logoutUser = async () => {
-  await logout()
-  redirect("/")
+  const token = await getToken()
+
+  if (token) {
+    // A 401 means core has already ended the session; the cookie goes either way.
+    try {
+      await publicCore.POST("/auth/logout", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    } catch (e) {
+      console.error("logout request failed:", e)
+    }
+  }
+
+  await deleteSession()
+  redirect("/login")
 }
