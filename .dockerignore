@@ -1,0 +1,27 @@
+# Build context for core/Dockerfile (and later images). Keeps the context small
+# and keeps local-only files out of image layers.
+
+# Environments and caches
+**/.venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/node_modules
+**/.next
+
+# Local configuration and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Tests aren't part of an image
+**/tests
+
+# MISMO: only the Reference Model folder is needed; bindings are generated and
+# the DU wrapper is staged inside the build. Excludes the zips, reports, test
+# case suite, and any local staged/ copy.
+mismo/src/mismo/generated
+mismo/schema/*
+!mismo/schema/ReferenceModel_v3.4.0_B324

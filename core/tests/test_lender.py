@@ -419,9 +419,7 @@ def test_lender_grant_list_has_no_application_data(
     assert item["sha256"] == sha256
 
 
-def test_lender_grant_list_is_in_grant_order(
-    client: TestClient, setup: Setup
-) -> None:
+def test_lender_grant_list_is_in_grant_order(client: TestClient, setup: Setup) -> None:
     ids = [grant(client, setup, setup.a) for _ in range(3)]
 
     listed = client.get("/lender/grants", auth=lender_auth(setup.a)).json()

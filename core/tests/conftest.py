@@ -21,6 +21,7 @@ from collections.abc import Callable, Iterator
 
 import pytest
 from fastapi.testclient import TestClient
+from helpers import lender_secret
 from sqlalchemy import Connection
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
@@ -29,7 +30,6 @@ from core.app import app
 from core.auth import HASHER, hash_token
 from core.db import engine, get_session
 from core.storage import Base, Borrower, Lender
-from helpers import lender_secret
 
 PASSWORD = "correct horse battery staple"
 

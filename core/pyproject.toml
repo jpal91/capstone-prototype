@@ -22,6 +22,7 @@ mismo = { workspace = true }
 
 [project.scripts]
 core = "core.app:main"
+core-seed = "core.seed:main"
 
 [build-system]
 requires = ["uv_build>=0.12.19,<0.13.0"]

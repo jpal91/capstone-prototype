@@ -1,3 +1,27 @@
+# docker compose up --build    # run (NFR-07)
+# docker compose down -v       # remove everything, including the database
+#
+# Images built here contain the license-restricted MISMO schema and generated
+# bindings: never push them to a registry. Ports are bound to 127.0.0.1
+# because Docker's port publishing bypasses host firewalls such as ufw.
+
+x-core-env: &core-env
+  DATABASE_URL: postgresql+psycopg://core:core@db:5432/core
+
+# Demo credentials for the synthetic accounts (NFR-06). They are public by
+# design, so use them only for this local demo; override any of them from the
+# shell or a .env file next to this one.
+x-demo-credentials: &demo-credentials
+  ALICE_PASSWORD: ${ALICE_PASSWORD:-demo-labials-Reacted-pigmy-Prep-tanners-24!}
+  BOB_PASSWORD: ${BOB_PASSWORD:-demo-loopy-Tycoons-irately-Unify-attic-38!}
+  LENDER_A_SECRET: ${LENDER_A_SECRET:-demo-stories-Civilly-trachea-Filbert-chisels-53!}
+  LENDER_B_SECRET: ${LENDER_B_SECRET:-demo-acquits-Tangelo-loam-Wide-droned-67!}
+  LENDER_C_SECRET: ${LENDER_C_SECRET:-demo-gerunds-Mask-impure-Dowdily-tenting-55!}
+
+x-core-build: &core-build
+  context: .
+  dockerfile: core/Dockerfile
+
 services:
   db:
     image: postgres:18-alpine
@@ -13,8 +37,31 @@ services:
       timeout: 3s
       retries: 15
 
-  # core:
-  #   build: ./core # Dockerfile goes here
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
+  # Creates the tables and the demo accounts, then exits. Same image as core.
+  seed:
+    build: *core-build
+    command: ["core-seed"]
+    environment:
+      <<: [*core-env, *demo-credentials]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  core:
+    build: *core-build
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment: *core-env
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/health')
+      interval: 2s
+      timeout: 3s
+      retries: 15
