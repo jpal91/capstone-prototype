@@ -45,3 +45,14 @@ gen-api:
     uv run --package core python -c "import json; from core.app import app; \
         open('./portal/app/lib/core/openapi.json', 'w').write(json.dumps(app.openapi(), indent=2) + '\n')"
     cd portal && pnpm exec openapi-typescript app/lib/core/openapi.json -o app/lib/core/schema.d.ts
+
+# Start the docker services
+docker-up:
+    docker compose up -d --wait db
+
+# Stop docker services
+docker-down:
+    docker compose down -v
+
+# Restart container
+docker-restart: docker-down docker-up
