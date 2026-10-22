@@ -25,7 +25,7 @@ const LoginPage = () => {
         </div>
 
         <button disabled={pending} className="btn btn-neutral mt-4">Login</button>
-        <div className="text-sm" hidden={!Boolean(state?.message)}>
+        <div className="text-xs my-1" hidden={!Boolean(state?.message)}>
           {state?.message}
         </div>
       </fieldset>

@@ -1,7 +1,11 @@
+import NavBar from "@/app/components/NavBar"
 
 const DashboardLayout = ({ children }: LayoutProps<'/dashboard'>) => {
   return (
-    <main>{children}</main>
+    <>
+      <NavBar />
+      <main>{children}</main>
+    </>
   )
 }
 

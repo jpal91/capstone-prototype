@@ -1,4 +1,6 @@
+"use server"
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 export const requireSession = async () => {
   const cookieStore = await cookies()
@@ -8,6 +10,15 @@ export const requireSession = async () => {
   } else {
     return false
   }
+}
+
+export const getToken = async () => {
+  const cookieStore = await cookies()
+  const session = cookieStore.get("session")
+
+  if (!session) return
+
+  return session.value
 }
 
 export async function createSession(token: string) {
@@ -21,4 +32,29 @@ export async function createSession(token: string) {
     sameSite: 'lax',
     path: '/',
   })
+}
+
+export const logout = async () => {
+  const cookieStore = await cookies()
+  const session = cookieStore.get("session")
+
+  if (!session) {
+    // redirect("/")
+    return
+  }
+
+  const token = session.value
+  cookieStore.delete("session")
+
+  try {
+    fetch("http://127.0.0.1:8000/auth/logout", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+  } catch {}
+
+  // redirect("/")
+  return
 }
