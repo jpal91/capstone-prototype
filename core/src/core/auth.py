@@ -1,17 +1,23 @@
+import hmac
 import secrets
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBasic,
+    HTTPBasicCredentials,
+    HTTPBearer,
+)
 from pwdlib import PasswordHash
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from core.db import SessionDep
-from core.storage import AuthSession, Borrower
+from core.storage import AuthSession, Borrower, Lender
 
 HASHER = PasswordHash.recommended()
 DUMMY_HASH = HASHER.hash("timing-equalizer")
@@ -19,6 +25,9 @@ SESSION_LIFETIME = timedelta(hours=24)
 
 bearer = HTTPBearer(auto_error=False)
 Credentials = Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)]
+
+basic = HTTPBasic(auto_error=False)
+LenderCredentials = Annotated[HTTPBasicCredentials | None, Depends(basic)]
 
 
 class LoginFailed(Exception):
@@ -89,3 +98,18 @@ def current_borrower(auth: CurrentSession) -> Borrower:
 
 
 CurrentBorrower = Annotated[Borrower, Depends(current_borrower)]
+
+
+def current_lender(db: SessionDep, creds: LenderCredentials) -> Lender:
+    if creds is not None:
+        lender = db.scalar(select(Lender).where(Lender.client_id == creds.username))
+
+        if lender is not None and hmac.compare_digest(
+            hash_token(creds.password), lender.hashed_secret
+        ):
+            return lender
+
+    raise HTTPException(401, "Not authenticated", headers={"WWW-Authenticate": "Basic"})
+
+
+CurrentLender = Annotated[Lender, Depends(current_lender)]

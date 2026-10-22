@@ -70,6 +70,12 @@ class GrantResponse(ServicesBase):
     revoked_at: datetime | None = None
 
 
+class LenderGrantResponse(ServicesBase):
+    grant_id: int
+    expires_at: datetime
+    sha256: str
+
+
 def add_new_draft_service(db: Session, borrower: Borrower, body: UrlaDraft) -> None:
     data = body.model_dump(mode="json", by_alias=True, exclude_none=True)
     stmt = insert(Draft).values(data=data, borrower_id=borrower.id)
@@ -166,6 +172,65 @@ def lenders_service(db: Session) -> list[LenderResponse]:
     res = db.execute(select(Lender.id, Lender.name).order_by(Lender.name)).all()
 
     return [LenderResponse(id=r[0], name=r[1]) for r in res]
+
+
+def lender_grants_service(db: Session, lender: Lender) -> list[LenderGrantResponse]:
+    stmt = (
+        select(Grant.id, Grant.expires_at, Version.sha256)
+        .join(Grant.version)
+        .where(Grant.grant_status() == "active", Grant.lender_id == lender.id)
+        .order_by(Grant.id)
+    )
+
+    res = db.execute(stmt).all()
+
+    return [LenderGrantResponse.model_validate(r._mapping) for r in res]
+
+
+def get_application_service(
+    db: Session, lender: Lender, grant_id: int
+) -> tuple[bytes, str] | None:
+    ids = {"grant_id": grant_id, "lender_id": lender.id}
+    stmt = (
+        select(
+            Grant.grant_status().label("status"),
+            Version.xml,
+            Version.sha256,
+            Grant.lender_id,
+            Grant.borrower_id,
+            Grant.version_id,
+        )
+        .join(Grant.version)
+        .where(Grant.id == grant_id)
+        .with_for_update(read=True, of=Grant)
+    )
+
+    try:
+        grant = db.execute(stmt).one()
+    except NoResultFound:
+        append(db, AuditAction.FetchDenied, detail={"reason": "not_found"}, **ids)
+        return None
+
+    status, xml, sha, lid, bid, vid = grant
+
+    ids = {**ids, "version_id": vid, "borrower_id": bid}
+
+    reason = None
+
+    if lid != lender.id:
+        reason = "other_lender"
+    elif status == "expired":
+        reason = "expired"
+    elif status == "revoked":
+        reason = "revoked"
+
+    if reason is not None:
+        append(db, AuditAction.FetchDenied, detail={"reason": reason}, **ids)
+        return None
+
+    append(db, AuditAction.Fetch, detail={"sha256": sha}, **ids)
+
+    return xml, sha
 
 
 def grant_create_service(
