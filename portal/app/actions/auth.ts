@@ -59,7 +59,7 @@ export const loginUser = async (_state: FormState, form: FormData) => {
   }
 
 
-  redirect("/dashboard")
+  redirect("/borrower")
 }
 
 export const logoutUser = async () => {
