@@ -1,6 +1,6 @@
 import NavBar from "@/app/components/NavBar"
 
-const DashboardLayout = ({ children }: LayoutProps<'/dashboard'>) => {
+const DashboardLayout = ({ children }: LayoutProps<'/borrower'>) => {
   return (
     <>
       <NavBar />

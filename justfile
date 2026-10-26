@@ -48,7 +48,7 @@ gen-api:
 
 # Start the docker services
 docker-up:
-    docker compose up -d --wait db
+    docker compose up -d
 
 # Stop docker services
 docker-down:
