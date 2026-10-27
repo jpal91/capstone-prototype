@@ -6,10 +6,12 @@ export const getDraft = async () => {
 
   if (error) {
     console.error("fetch draft failed with status ", status)
-    return {}
+    return null
   }
 
-  return data
+  const lastModified = response.headers.get("Last-Modified")
+
+  return { draft: data, lastModified }
 }
 
 export const getVersions = async () => {

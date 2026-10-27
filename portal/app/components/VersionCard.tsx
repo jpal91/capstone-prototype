@@ -12,7 +12,7 @@ const VersionCard = ({ sha256, createdAt }: VersionCardProps) => {
       <div className="flex flex-col">
         <div>
           <span>Version Hash: </span>
-          <span className="text-mono">{sha256}</span>
+          <span className="font-mono">{sha256.slice(12)}</span>
         </div>
         <div>
           <span>Created At: </span>
