@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { requireSession } from "@/app/lib/session"
-import { getDraft, getVersions } from "@/app/lib/utils"
+import { getDraft, getGrants, getVersions } from "@/app/lib/utils"
 
 import VersionCard from "@/app/components/VersionCard"
 import Link from "next/link"
@@ -12,7 +12,10 @@ const DashboardPage = async () => {
     redirect("/login")
   }
 
-  const [versions, draftRes] = await Promise.all([getVersions(), getDraft()])
+  const [versions, draftRes, grants] = await Promise.all([getVersions(), getDraft(), getGrants()])
+
+  // core lists versions oldest first.
+  const newestFirst = versions?.toReversed()
 
 
   return (
@@ -27,18 +30,26 @@ const DashboardPage = async () => {
           {draftRes?.lastModified ? "Resume" : "Start"}
         </Link>
       </div>
-      <div className="w-full flex flex-col">
-        <div className="text-5xl font-bold mb-12">Versions</div>
-        <div className="flex gap-4 flex-wrap">
-          {versions ? versions.map((v) => (
-            <VersionCard
-              key={v.id}
-              sha256={v.sha256}
-              createdAt={v.createdAt}
-            />
-          )) : <div>TODO</div>}
-        </div>
-      </div>
+      <section className="w-full flex flex-col">
+        <h2 className="text-5xl font-bold mb-12">Finalized versions</h2>
+        {newestFirst === undefined ? (
+          <div role="alert" className="alert alert-error">Your versions couldn&apos;t be loaded. Try again.</div>
+        ) : newestFirst.length === 0 ? (
+          <p className="opacity-70">No finalized versions yet. Finalize your pre-application to create one you can share.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {newestFirst.map((v, i) => (
+              <VersionCard
+                key={v.id}
+                version={v}
+                isLatest={i === 0}
+                isOutdated={v.sha256 !== newestFirst[0].sha256}
+                grants={grants?.filter((g) => g.versionId === v.id) ?? null}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
