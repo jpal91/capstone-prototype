@@ -25,3 +25,15 @@ export const getVersions = async () => {
 
   return data
 }
+
+export const getGrants = async () => {
+  const { data, error, response } = await core.GET("/grants")
+  const status = response.status
+
+  if (error) {
+    console.error("fetch grants failed with status ", status)
+    return null
+  }
+
+  return data
+}
