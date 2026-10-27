@@ -56,7 +56,7 @@ const VersionCard = ({ version, isLatest, isOutdated, grants }: VersionCardProps
         </div>
 
         {isOutdated && hasActive && (
-          <div role="alert" className="alert alert-warning alert-soft text-sm">
+          <div role="alert" className="alert alert-warning text-sm">
             Lenders with access to this version don&apos;t see changes in newer versions.
           </div>
         )}

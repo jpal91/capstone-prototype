@@ -2,8 +2,8 @@ import { redirect } from "next/navigation"
 import { requireSession } from "@/app/lib/session"
 import { getDraft, getGrants, getVersions } from "@/app/lib/utils"
 
+import DraftCard from "@/app/components/DraftCard"
 import VersionCard from "@/app/components/VersionCard"
-import Link from "next/link"
 
 const DashboardPage = async () => {
   const session = await requireSession()
@@ -22,14 +22,11 @@ const DashboardPage = async () => {
     <div
       className="mx-auto w-full max-w-7xl flex flex-col p-8 mt-10 gap-20"
     >
-      <div className="w-full flex justify-between items-center border-2 rounded-xl bg-base-200 p-10">
-        <div className="text-2xl font-bold">
-          {draftRes?.lastModified ? "Resume Draft" : "Start a New Draft"}
-        </div>
-        <Link href="/" className="btn lg:btn-lg">
-          {draftRes?.lastModified ? "Resume" : "Start"}
-        </Link>
-      </div>
+      <DraftCard
+        draft={draftRes?.draft ?? null}
+        lastModified={draftRes?.lastModified ?? null}
+        latestFinalizedAt={newestFirst?.[0]?.createdAt}
+      />
       <section className="w-full flex flex-col">
         <h2 className="text-5xl font-bold mb-12">Finalized versions</h2>
         {newestFirst === undefined ? (
