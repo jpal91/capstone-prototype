@@ -102,15 +102,16 @@ const DraftSaveFormSchema = z.object({
 const coreFieldErrors = (detail: components["schemas"]["ValidationError"][] = []) =>
   Object.fromEntries(detail.map((d) => [
     (d.loc[0] === "body" ? d.loc.slice(1) : d.loc).join("."),
-    d.msg
+    d.msg.replace(/^Value error, /, "")
   ]))
 
 export type SubmitDraftState =
   | { status: "idle" }
   | { status: "saved", savedAt: string }
+  | { status: "finalized", version: components["schemas"]["VersionItemResponse"] }
   | { status: "error", message: string, fieldErrors?: Record<string, string> };
 
-export const submitDraft = async (_state: SubmitDraftState, form: FormData): Promise<SubmitDraftState> => {
+const submitDraft = async (_state: SubmitDraftState, form: FormData): Promise<SubmitDraftState> => {
   const objData = unflatten(form)
   const validatedFields = DraftSaveFormSchema.safeParse(objData)
 
@@ -161,3 +162,49 @@ export const submitDraft = async (_state: SubmitDraftState, form: FormData): Pro
     return { status: "saved", savedAt: (new Date()).toISOString() }
   }
 }
+
+const finalizeDraft = async (state: SubmitDraftState, form: FormData): Promise<SubmitDraftState> => {
+  const res = await submitDraft(state, form)
+
+  if (res.status === "error") return res
+
+  let result
+  try {
+    result = await core.POST("/draft/finalize")
+  } catch (e) {
+    unstable_rethrow(e)
+    console.error("finalize draft failed: core unreachable")
+    return {
+      status: "error",
+      message: "Error when finalizing draft, please try again"
+    }
+  }
+
+  const { data, error, response } = result
+
+  if (response.status === 422 && error) {
+    return {
+      status: "error",
+      message: "Draft saved. Complete the highlighted fields to finalize",
+      fieldErrors: coreFieldErrors(error.detail)
+    }
+  }
+
+  if (error) {
+    console.error("finalize draft failed with status ", response.status)
+    return {
+      status: "error",
+      message: "Error when finalizing draft, please try again"
+    }
+  } else {
+    return {
+      status: "finalized",
+      version: data
+    }
+  }
+}
+
+// One action for the form: the clicked button's name/value is in the FormData
+// (also without JS), so Save and Finalize share one state.
+export const saveOrFinalizeDraft = async (state: SubmitDraftState, form: FormData) =>
+  form.get("intent") === "finalize" ? finalizeDraft(state, form) : submitDraft(state, form)
