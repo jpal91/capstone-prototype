@@ -6,9 +6,7 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: LayoutProps<"/login">) {
   return (
-    <main
-      className="w-screen h-screen flex justify-center items-center"
-    >
+    <main className="w-screen h-screen flex justify-center items-center">
       {children}
     </main>
   );

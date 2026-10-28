@@ -6,9 +6,9 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    "rules": {
+    rules: {
       "@typescript-eslint/no-explicit-any": "off",
-    }
+    },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([

@@ -1,4 +1,4 @@
-import { logoutUser } from '@/app/actions/auth'
+import { logoutUser } from "@/app/actions/auth";
 
 const NavBar = () => {
   return (
@@ -7,13 +7,10 @@ const NavBar = () => {
         <a className="btn btn-ghost text-xl">OneApp</a>
       </div>
       <form className="flex-none" action={logoutUser}>
-        <button className="btn"
-        >
-          Logout
-        </button>
+        <button className="btn">Logout</button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default NavBar
+export default NavBar;

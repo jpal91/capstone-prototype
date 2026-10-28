@@ -1,27 +1,28 @@
-import { redirect } from "next/navigation"
-import { requireSession } from "@/app/lib/session"
-import { getDraft, getGrants, getVersions } from "@/app/lib/utils"
+import { redirect } from "next/navigation";
+import { requireSession } from "@/app/lib/session";
+import { getDraft, getGrants, getVersions } from "@/app/lib/utils";
 
-import DraftCard from "@/app/components/DraftCard"
-import VersionCard from "@/app/components/VersionCard"
+import DraftCard from "@/app/components/DraftCard";
+import VersionCard from "@/app/components/VersionCard";
 
 const DashboardPage = async () => {
-  const session = await requireSession()
+  const session = await requireSession();
 
   if (!session) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const [versions, draftRes, grants] = await Promise.all([getVersions(), getDraft(), getGrants()])
+  const [versions, draftRes, grants] = await Promise.all([
+    getVersions(),
+    getDraft(),
+    getGrants(),
+  ]);
 
   // core lists versions oldest first.
-  const newestFirst = versions?.toReversed()
-
+  const newestFirst = versions?.toReversed();
 
   return (
-    <div
-      className="mx-auto w-full max-w-7xl flex flex-col p-8 mt-10 gap-20"
-    >
+    <div className="mx-auto w-full max-w-7xl flex flex-col p-8 mt-10 gap-20">
       <DraftCard
         draft={draftRes?.draft ?? null}
         lastModified={draftRes?.lastModified ?? null}
@@ -30,9 +31,14 @@ const DashboardPage = async () => {
       <section className="w-full flex flex-col">
         <h2 className="text-5xl font-bold mb-12">Finalized versions</h2>
         {newestFirst === undefined ? (
-          <div role="alert" className="alert alert-error">Your versions couldn&apos;t be loaded. Try again.</div>
+          <div role="alert" className="alert alert-error">
+            Your versions couldn&apos;t be loaded. Try again.
+          </div>
         ) : newestFirst.length === 0 ? (
-          <p className="opacity-70">No finalized versions yet. Finalize your pre-application to create one you can share.</p>
+          <p className="opacity-70">
+            No finalized versions yet. Finalize your pre-application to create
+            one you can share.
+          </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {newestFirst.map((v, i) => (
@@ -48,7 +54,7 @@ const DashboardPage = async () => {
         )}
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default DashboardPage
+export default DashboardPage;

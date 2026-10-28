@@ -1,12 +1,12 @@
-import NavBar from "@/app/components/NavBar"
+import NavBar from "@/app/components/NavBar";
 
-const DashboardLayout = ({ children }: LayoutProps<'/borrower'>) => {
+const DashboardLayout = ({ children }: LayoutProps<"/borrower">) => {
   return (
     <>
       <NavBar />
       <main>{children}</main>
     </>
-  )
-}
+  );
+};
 
-export default DashboardLayout
+export default DashboardLayout;
