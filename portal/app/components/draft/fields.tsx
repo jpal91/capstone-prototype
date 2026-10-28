@@ -97,7 +97,16 @@ export const SelectField = ({ name, label, values, defaultValue, hint }: {
   )
 }
 
-export const Section = ({ title, description, children }: {
+// An error on a whole group rather than one input: a section ("borrower",
+// when there's no draft at all), a list ("assets"), or a row ("assets.0").
+export const GroupError = ({ name }: { name: string }) => {
+  const error = useFieldError(name)
+  return error ? <p role="alert" className="mb-4 text-sm text-error">{error}</p> : null
+}
+
+export const Section = ({ name, title, description, children }: {
+  // The draft key this section edits, for section-level errors.
+  name: string
   title: string
   description?: string
   children: ReactNode
@@ -105,6 +114,7 @@ export const Section = ({ title, description, children }: {
   <fieldset className="rounded-box border border-base-300 p-6">
     <legend className="px-2 text-lg font-semibold">{title}</legend>
     {description && <p className="mb-4 text-sm opacity-70">{description}</p>}
+    <GroupError name={name} />
     <div className="grid gap-4 md:grid-cols-2">{children}</div>
   </fieldset>
 )

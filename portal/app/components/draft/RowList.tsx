@@ -3,7 +3,7 @@
 import { useRef, useState, type ReactNode } from "react"
 
 import { MAX_ROWS } from "@/app/lib/draft"
-import { useFieldError } from "./fields"
+import { GroupError } from "./fields"
 
 type RowListProps<T> = {
   // Input names are `${name}.${index}.field`.
@@ -13,12 +13,6 @@ type RowListProps<T> = {
   itemLabel: string
   initial: T[]
   renderRow: (prefix: string, row: T | undefined) => ReactNode
-}
-
-// Errors on a whole row (core's cross-field rules), keyed "assets.0".
-const RowError = ({ name }: { name: string }) => {
-  const error = useFieldError(name)
-  return error ? <p className="text-sm text-error">{error}</p> : null
 }
 
 // Inputs are uncontrolled: a stable key per row keeps what the user typed
@@ -38,6 +32,7 @@ const RowList = <T,>({ name, title, description, itemLabel, initial, renderRow }
     <fieldset className="rounded-box border border-base-300 p-6">
       <legend className="px-2 text-lg font-semibold">{title}</legend>
       {description && <p className="mb-4 text-sm opacity-70">{description}</p>}
+      <GroupError name={name} />
 
       <div className="flex flex-col gap-4">
         {rows.length === 0 && <p className="text-sm opacity-70">None added.</p>}
@@ -49,7 +44,8 @@ const RowList = <T,>({ name, title, description, itemLabel, initial, renderRow }
                 Remove
               </button>
             </div>
-            <RowError name={`${name}.${i}`} />
+            {/* core's cross-field rules report on the whole row. */}
+            <GroupError name={`${name}.${i}`} />
             <div className="grid gap-4 md:grid-cols-2">{renderRow(`${name}.${i}`, row.data)}</div>
           </div>
         ))}

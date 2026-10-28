@@ -20,7 +20,7 @@ type Asset = components["schemas"]["AssetDraft-Output"]
 type Liability = components["schemas"]["LiabilityDraft-Output"]
 
 export const BorrowerSection = ({ value }: { value: Draft["borrower"] }) => (
-  <Section title="Personal information">
+  <Section name="borrower" title="Personal information">
     <Field name="borrower.firstName" label="First name" defaultValue={value?.firstName} autoComplete="given-name" />
     <Field name="borrower.lastName" label="Last name" defaultValue={value?.lastName} autoComplete="family-name" />
     <Field name="borrower.dateOfBirth" label="Date of birth" type="date" defaultValue={value?.dateOfBirth} autoComplete="bday" />
@@ -49,7 +49,7 @@ const AddressFields = ({ prefix, value, autoComplete }: {
 }
 
 export const CurrentAddressSection = ({ value }: { value: Draft["address"] }) => (
-  <Section title="Current address">
+  <Section name="address" title="Current address">
     <AddressFields prefix="address" value={value} autoComplete />
     <SelectField name="address.ownStatus" label="Own or rent" values={ownStatusValues} defaultValue={value?.ownStatus} />
     <IntField name="address.monthsAtAddress" label="Months at this address" defaultValue={value?.monthsAtAddress} />
@@ -57,7 +57,7 @@ export const CurrentAddressSection = ({ value }: { value: Draft["address"] }) =>
 )
 
 export const IncomeSection = ({ value }: { value: Draft["income"] }) => (
-  <Section title="Employment and income" description="Your current employer.">
+  <Section name="income" title="Employment and income" description="Your current employer.">
     <Field name="income.employerName" label="Employer" defaultValue={value?.employerName} autoComplete="organization" />
     <Field name="income.position" label="Position" defaultValue={value?.position} autoComplete="organization-title" />
     <Field name="income.startDate" label="Start date" type="date" defaultValue={value?.startDate} />
@@ -102,7 +102,7 @@ export const LiabilitiesSection = ({ value }: { value: Draft["liabilities"] }) =
 )
 
 export const LoanSection = ({ value }: { value: Draft["loan"] }) => (
-  <Section title="Loan">
+  <Section name="loan" title="Loan">
     <SelectField name="loan.loanPurpose" label="Purpose" values={loanPurposeValues} defaultValue={value?.loanPurpose} />
     <MoneyField name="loan.loanAmount" label="Loan amount ($)" defaultValue={value?.loanAmount} />
     <SelectField name="loan.loanProgram" label="Loan program" values={loanProgramValues} defaultValue={value?.loanProgram} />
@@ -112,6 +112,7 @@ export const LoanSection = ({ value }: { value: Draft["loan"] }) => (
 
 export const PropertySection = ({ value }: { value: Draft["subjectProperty"] }) => (
   <Section
+    name="subjectProperty"
     title="Property"
     description="The home you're buying or refinancing. Leave the address empty if you haven't chosen one yet; a refinance needs it."
   >
