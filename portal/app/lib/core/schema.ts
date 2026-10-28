@@ -946,3 +946,18 @@ export interface operations {
         };
     };
 }
+type FlattenedDeepRequired<T> = {
+    [K in keyof T]-?: FlattenedDeepRequired<T[K] extends unknown[] | undefined | null ? Extract<T[K], unknown[]>[number] : T[K]>;
+};
+type ReadonlyArray<T> = [
+    Exclude<T, undefined>
+] extends [
+    unknown[]
+] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
+export const assetTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AssetType"]> = ["Checking", "Savings", "Retirement", "CertificateOfDeposit", "MutualFund", "Trust"];
+export const grantResponseStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["GrantResponse"]["status"]> = ["active", "revoked", "expired"];
+export const liabilityTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LiabilityType"]> = ["Revolving", "Installment", "Open30Day", "Lease", "Other"];
+export const loanProgramValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LoanProgram"]> = ["Conventional", "FHA"];
+export const loanPurposeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LoanPurpose"]> = ["Purchase", "Refinance"];
+export const occupancyValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Occupancy"]> = ["PrimaryResidence", "SecondHome", "Investment"];
+export const ownStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["OwnStatus"]> = ["Own", "Rent"];
