@@ -52,6 +52,8 @@ const VersionCard = ({
     (a, b) => Number(b.status === "active") - Number(a.status === "active"),
   );
   const hasActive = grants?.some((g) => g.status === "active") ?? false;
+  // The exact bytes lenders receive (MISMO XML).
+  const xmlHref = `/borrower/versions/${version.id}/xml`;
 
   return (
     <div className="card card-border bg-base-100">
@@ -91,6 +93,25 @@ const VersionCard = ({
               ))}
             </ul>
           )}
+        </div>
+
+        {/* Plain <a>: these go to a route handler, not a page. */}
+        <div className="card-actions justify-end">
+          <a
+            href={xmlHref}
+            target="_blank"
+            rel="noopener"
+            className="btn btn-ghost btn-sm"
+          >
+            View XML
+          </a>
+          <a
+            href={xmlHref}
+            download={`pre-application-v${version.number}.xml`}
+            className="btn btn-sm"
+          >
+            Download
+          </a>
         </div>
       </div>
     </div>
