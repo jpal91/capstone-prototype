@@ -254,7 +254,7 @@ class SubjectProperty(UrlaModel):
     def address_all_or_nothing(self) -> Self:
         parts = (self.street_address, self.city, self.state, self.zip_code)
         if any(p is not None for p in parts) and any(p is None for p in parts):
-            raise ValueError("subject property address must be complete or left empty")
+            raise ValueError("Enter full property address or leave empty")
         return self
 
 
@@ -295,7 +295,7 @@ class Liability(UrlaModel):
             and self.months_remaining is None
         ):
             raise ValueError(
-                "months_remaining is required for an installment liability"
+                "Months remaining is required for an installment liability"
             )
         return self
 
@@ -330,5 +330,5 @@ class Urla(UrlaModel):
             self.loan.loan_purpose == LoanPurpose.Refinance
             and not self.subject_property.has_address
         ):
-            raise ValueError("a refinance requires the subject property address")
+            raise ValueError("A refinance requires the property address")
         return self
