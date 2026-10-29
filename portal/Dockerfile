@@ -26,11 +26,11 @@ ENV NODE_ENV=production \
 WORKDIR /app
 
 # standalone/ mirrors the workspace (server.js under portal/); static assets
-# and public/ aren't included in it and are copied next to server.js. Files
-# stay owned by root, so the app user can't modify them.
+# aren't included in it and are copied next to server.js. (If portal/public/
+# is added, copy it to portal/public the same way.) Files stay owned by root,
+# so the app user can't modify them.
 COPY --from=build /app/portal/.next/standalone ./
 COPY --from=build /app/portal/.next/static portal/.next/static
-COPY --from=build /app/portal/public portal/public
 
 USER node
 EXPOSE 3000

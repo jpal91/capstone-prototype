@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import DraftForm from "@/app/components/draft/DraftForm";
 import { requireSession } from "@/app/lib/session";
 import { getDraft } from "@/app/lib/utils";
+
+export const metadata: Metadata = { title: "Pre-application" };
 
 const ApplicationPage = async () => {
   const session = await requireSession();

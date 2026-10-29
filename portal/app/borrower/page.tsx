@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/app/lib/session";
 import { getDraft, getGrants, getLenders, getVersions } from "@/app/lib/utils";
 
 import DraftCard from "@/app/components/DraftCard";
 import VersionCard from "@/app/components/VersionCard";
+
+export const metadata: Metadata = { title: "Dashboard" };
 
 const DashboardPage = async () => {
   const session = await requireSession();
