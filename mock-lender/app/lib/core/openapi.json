@@ -1,0 +1,1708 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "core",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout",
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/draft": {
+      "get": {
+        "summary": "Get Draft",
+        "operationId": "get_draft_draft_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UrlaDraft-Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Put Draft",
+        "operationId": "put_draft_draft_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UrlaDraft-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/draft/finalize": {
+      "post": {
+        "summary": "Finalize Draft",
+        "operationId": "finalize_draft_draft_finalize_post",
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionItemResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/versions": {
+      "get": {
+        "summary": "Versions",
+        "operationId": "versions_versions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VersionItemResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Versions Versions Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/versions/{version_id}/xml": {
+      "get": {
+        "summary": "Version Xml",
+        "operationId": "version_xml_versions__version_id__xml_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/xml": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lenders": {
+      "get": {
+        "summary": "Lenders",
+        "operationId": "lenders_lenders_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LenderResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Lenders Lenders Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/lender/grants": {
+      "get": {
+        "summary": "Lender Grants",
+        "operationId": "lender_grants_lender_grants_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LenderGrantResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Lender Grants Lender Grants Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/lender/grants/{grant_id}/application": {
+      "get": {
+        "summary": "Get Application",
+        "operationId": "get_application_lender_grants__grant_id__application_get",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "grant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Grant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/xml": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/grants": {
+      "get": {
+        "summary": "Grants",
+        "operationId": "grants_grants_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GrantResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Grants Grants Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Grant",
+        "operationId": "create_grant_grants_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantCreateBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/grants/{grant_id}/revoke": {
+      "post": {
+        "summary": "Revoke Grant",
+        "operationId": "revoke_grant_grants__grant_id__revoke_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "grant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Grant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssetDraft-Input": {
+        "properties": {
+          "institutionName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institutionname"
+          },
+          "assetType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssetType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AssetDraft",
+        "description": "2a. One bank, retirement, or other account."
+      },
+      "AssetDraft-Output": {
+        "properties": {
+          "institutionName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institutionname"
+          },
+          "assetType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssetType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AssetDraft",
+        "description": "2a. One bank, retirement, or other account."
+      },
+      "AssetType": {
+        "type": "string",
+        "enum": [
+          "Checking",
+          "Savings",
+          "Retirement",
+          "CertificateOfDeposit",
+          "MutualFund",
+          "Trust"
+        ],
+        "title": "AssetType"
+      },
+      "BorrowerDraft": {
+        "properties": {
+          "firstName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firstname"
+          },
+          "lastName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastname"
+          },
+          "dateOfBirth": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dateofbirth"
+          },
+          "phoneNumber": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "phone"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phonenumber"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "BorrowerDraft",
+        "description": "1a. Personal Information."
+      },
+      "CurrentPropertyDraft": {
+        "properties": {
+          "streetAddress": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Streetaddress"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "zipCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{5}(-\\d{4})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zipcode"
+          },
+          "ownStatus": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OwnStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "monthsAtAddress": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthsataddress"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CurrentPropertyDraft",
+        "description": "1a. Current address, housing (own/rent), and time at the address."
+      },
+      "FieldError": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Loc"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Msg"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "loc",
+          "msg"
+        ],
+        "title": "FieldError"
+      },
+      "GrantCreateBody": {
+        "properties": {
+          "lenderId": {
+            "type": "integer",
+            "title": "Lenderid"
+          },
+          "versionId": {
+            "type": "integer",
+            "title": "Versionid"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lenderId",
+          "versionId",
+          "expiresAt"
+        ],
+        "title": "GrantCreateBody"
+      },
+      "GrantResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "revoked",
+              "expired"
+            ],
+            "title": "Status"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "lenderId": {
+            "type": "integer",
+            "title": "Lenderid"
+          },
+          "lenderName": {
+            "type": "string",
+            "title": "Lendername"
+          },
+          "versionId": {
+            "type": "integer",
+            "title": "Versionid"
+          },
+          "versionNumber": {
+            "type": "integer",
+            "title": "Versionnumber"
+          },
+          "revokedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revokedat"
+          },
+          "lastFetchedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastfetchedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "expiresAt",
+          "createdAt",
+          "lenderId",
+          "lenderName",
+          "versionId",
+          "versionNumber"
+        ],
+        "title": "GrantResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IncomeDraft-Input": {
+        "properties": {
+          "employerName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employername"
+          },
+          "monthlyIncome": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlyincome"
+          },
+          "startDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startdate"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "IncomeDraft",
+        "description": "1b. Current employment and income (one employer)."
+      },
+      "IncomeDraft-Output": {
+        "properties": {
+          "employerName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employername"
+          },
+          "monthlyIncome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlyincome"
+          },
+          "startDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startdate"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "IncomeDraft",
+        "description": "1b. Current employment and income (one employer)."
+      },
+      "LenderGrantResponse": {
+        "properties": {
+          "grantId": {
+            "type": "integer",
+            "title": "Grantid"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grantId",
+          "expiresAt",
+          "sha256"
+        ],
+        "title": "LenderGrantResponse"
+      },
+      "LenderResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "LenderResponse"
+      },
+      "LiabilityDraft-Input": {
+        "properties": {
+          "institutionName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institutionname"
+          },
+          "liabilityType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiabilityType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "monthsRemaining": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthsremaining"
+          },
+          "monthlyAmount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlyamount"
+          },
+          "balance": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LiabilityDraft",
+        "description": "2c. One credit card, other debt, or lease."
+      },
+      "LiabilityDraft-Output": {
+        "properties": {
+          "institutionName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institutionname"
+          },
+          "liabilityType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiabilityType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "monthsRemaining": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthsremaining"
+          },
+          "monthlyAmount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlyamount"
+          },
+          "balance": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LiabilityDraft",
+        "description": "2c. One credit card, other debt, or lease."
+      },
+      "LiabilityType": {
+        "type": "string",
+        "enum": [
+          "Revolving",
+          "Installment",
+          "Open30Day",
+          "Lease",
+          "Other"
+        ],
+        "title": "LiabilityType"
+      },
+      "LoanInformationDraft-Input": {
+        "properties": {
+          "loanTermMonths": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loantermmonths"
+          },
+          "loanProgram": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoanProgram"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "loanAmount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loanamount"
+          },
+          "loanPurpose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoanPurpose"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LoanInformationDraft",
+        "description": "4a. Loan amount and purpose; L3. Mortgage type and term (borrower's preference)."
+      },
+      "LoanInformationDraft-Output": {
+        "properties": {
+          "loanTermMonths": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loantermmonths"
+          },
+          "loanProgram": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoanProgram"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "loanAmount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loanamount"
+          },
+          "loanPurpose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoanPurpose"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LoanInformationDraft",
+        "description": "4a. Loan amount and purpose; L3. Mortgage type and term (borrower's preference)."
+      },
+      "LoanProgram": {
+        "type": "string",
+        "enum": [
+          "Conventional",
+          "FHA"
+        ],
+        "title": "LoanProgram"
+      },
+      "LoanPurpose": {
+        "type": "string",
+        "enum": [
+          "Purchase",
+          "Refinance"
+        ],
+        "title": "LoanPurpose"
+      },
+      "LoginBody": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginBody"
+      },
+      "LoginResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "LoginResponse"
+      },
+      "Occupancy": {
+        "type": "string",
+        "enum": [
+          "PrimaryResidence",
+          "SecondHome",
+          "Investment"
+        ],
+        "title": "Occupancy"
+      },
+      "OwnStatus": {
+        "type": "string",
+        "enum": [
+          "Own",
+          "Rent"
+        ],
+        "title": "OwnStatus"
+      },
+      "SubjectPropertyDraft-Input": {
+        "properties": {
+          "streetAddress": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Streetaddress"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "zipCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{5}(-\\d{4})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zipcode"
+          },
+          "monthlyTaxes": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlytaxes"
+          },
+          "monthlyHoi": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlyhoi"
+          },
+          "propertyValue": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Propertyvalue"
+          },
+          "occupancy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Occupancy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SubjectPropertyDraft",
+        "description": "4a. The property being purchased or refinanced."
+      },
+      "SubjectPropertyDraft-Output": {
+        "properties": {
+          "streetAddress": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Streetaddress"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "zipCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{5}(-\\d{4})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zipcode"
+          },
+          "monthlyTaxes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlytaxes"
+          },
+          "monthlyHoi": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthlyhoi"
+          },
+          "propertyValue": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Propertyvalue"
+          },
+          "occupancy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Occupancy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SubjectPropertyDraft",
+        "description": "4a. The property being purchased or refinanced."
+      },
+      "UrlaDraft-Input": {
+        "properties": {
+          "borrower": {
+            "$ref": "#/components/schemas/BorrowerDraft"
+          },
+          "address": {
+            "$ref": "#/components/schemas/CurrentPropertyDraft"
+          },
+          "subjectProperty": {
+            "$ref": "#/components/schemas/SubjectPropertyDraft-Input"
+          },
+          "income": {
+            "$ref": "#/components/schemas/IncomeDraft-Input"
+          },
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/AssetDraft-Input"
+            },
+            "type": "array",
+            "title": "Assets"
+          },
+          "liabilities": {
+            "items": {
+              "$ref": "#/components/schemas/LiabilityDraft-Input"
+            },
+            "type": "array",
+            "title": "Liabilities"
+          },
+          "loan": {
+            "$ref": "#/components/schemas/LoanInformationDraft-Input"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UrlaDraft",
+        "description": "The borrower's editable application. Any subset of fields may be filled in."
+      },
+      "UrlaDraft-Output": {
+        "properties": {
+          "borrower": {
+            "$ref": "#/components/schemas/BorrowerDraft"
+          },
+          "address": {
+            "$ref": "#/components/schemas/CurrentPropertyDraft"
+          },
+          "subjectProperty": {
+            "$ref": "#/components/schemas/SubjectPropertyDraft-Output"
+          },
+          "income": {
+            "$ref": "#/components/schemas/IncomeDraft-Output"
+          },
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/AssetDraft-Output"
+            },
+            "type": "array",
+            "title": "Assets"
+          },
+          "liabilities": {
+            "items": {
+              "$ref": "#/components/schemas/LiabilityDraft-Output"
+            },
+            "type": "array",
+            "title": "Liabilities"
+          },
+          "loan": {
+            "$ref": "#/components/schemas/LoanInformationDraft-Output"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UrlaDraft",
+        "description": "The borrower's editable application. Any subset of fields may be filled in."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ValidationErrorBody": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ValidationErrorBody",
+        "description": "The body FastAPI sends for a RequestValidationError."
+      },
+      "VersionItemResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "sha256",
+          "createdAt"
+        ],
+        "title": "VersionItemResponse"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "HTTPBasic": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  }
+}
