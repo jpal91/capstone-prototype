@@ -1,8 +1,11 @@
 import type { components } from "@/app/lib/core/schema";
 import { formatDateTime } from "./format";
+import RevokeButton from "./RevokeButton";
+import ShareForm from "./ShareForm";
 
 type Version = components["schemas"]["VersionItemResponse"];
 type Grant = components["schemas"]["GrantResponse"];
+type Lender = components["schemas"]["LenderResponse"];
 
 type VersionCardProps = {
   version: Version;
@@ -11,6 +14,8 @@ type VersionCardProps = {
   isOutdated: boolean;
   // null when the grants couldn't be loaded.
   grants: Grant[] | null;
+  // null when the lenders couldn't be loaded.
+  lenders: Lender[] | null;
 };
 
 const STATUS_BADGE: Record<Grant["status"], string> = {
@@ -23,9 +28,14 @@ const GrantRow = ({ grant }: { grant: Grant }) => (
   <li className="flex flex-col gap-1 py-2">
     <div className="flex items-center justify-between gap-2">
       <span className="font-medium">{grant.lenderName}</span>
-      <span className={`badge badge-sm ${STATUS_BADGE[grant.status]}`}>
-        {grant.status}
-      </span>
+      <div className="flex items-center gap-2">
+        {grant.status === "active" && (
+          <RevokeButton grantId={grant.id} lenderName={grant.lenderName} />
+        )}
+        <span className={`badge badge-sm ${STATUS_BADGE[grant.status]}`}>
+          {grant.status}
+        </span>
+      </div>
     </div>
     <div className="text-xs opacity-70">
       {grant.status === "active" && (
@@ -46,12 +56,16 @@ const VersionCard = ({
   isLatest,
   isOutdated,
   grants,
+  lenders,
 }: VersionCardProps) => {
   // Active grants first; otherwise in the order they were created.
   const sorted = grants?.toSorted(
     (a, b) => Number(b.status === "active") - Number(a.status === "active"),
   );
   const hasActive = grants?.some((g) => g.status === "active") ?? false;
+  const activeLenderIds = (grants ?? [])
+    .filter((g) => g.status === "active")
+    .map((g) => g.lenderId);
   // The exact bytes lenders receive (MISMO XML).
   const xmlHref = `/borrower/versions/${version.id}/xml`;
 
@@ -94,6 +108,17 @@ const VersionCard = ({
             </ul>
           )}
         </div>
+
+        {/* Sharing is offered on the latest version only, so a borrower
+            doesn't hand out data they've since changed. */}
+        {isLatest && (
+          <ShareForm
+            versionId={version.id}
+            versionNumber={version.number}
+            lenders={lenders}
+            activeLenderIds={activeLenderIds}
+          />
+        )}
 
         {/* Plain <a>: these go to a route handler, not a page. */}
         <div className="card-actions justify-end">

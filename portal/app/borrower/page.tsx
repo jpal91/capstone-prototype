@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@/app/lib/session";
-import { getDraft, getGrants, getVersions } from "@/app/lib/utils";
+import { getDraft, getGrants, getLenders, getVersions } from "@/app/lib/utils";
 
 import DraftCard from "@/app/components/DraftCard";
 import VersionCard from "@/app/components/VersionCard";
@@ -12,10 +12,11 @@ const DashboardPage = async () => {
     redirect("/login");
   }
 
-  const [versions, draftRes, grants] = await Promise.all([
+  const [versions, draftRes, grants, lenders] = await Promise.all([
     getVersions(),
     getDraft(),
     getGrants(),
+    getLenders(),
   ]);
 
   // core lists versions oldest first.
@@ -48,6 +49,7 @@ const DashboardPage = async () => {
                 isLatest={i === 0}
                 isOutdated={v.sha256 !== newestFirst[0].sha256}
                 grants={grants?.filter((g) => g.versionId === v.id) ?? null}
+                lenders={lenders}
               />
             ))}
           </div>

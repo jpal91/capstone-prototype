@@ -27,7 +27,7 @@ export const grantAccess = async (
   const validatedFields = GrantCreateFormSchema.safeParse({
     lenderId: form.get("lenderId"),
     versionId: form.get("versionId"),
-    expiresAt: form.get("expiresAt"),
+    expiresInDays: form.get("expiresInDays"),
   });
 
   if (!validatedFields.success) {
