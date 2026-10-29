@@ -6,7 +6,7 @@ Requirement IDs refer to `requirements.md` in this folder.
 
 | Week | Goal | Done when | Requirements |
 |---|---|---|---|
-| 1 | Skeleton | Repo layout, `compose.yaml` with every service stubbed, uv workspace, Next.js scaffold; requirement list reviewed | NFR-07 (stubbed) |
+| 1 | Skeleton | Repo layout, `compose.yml` with every service stubbed, uv workspace, Next.js scaffold; requirement list reviewed | NFR-07 (stubbed) |
 | 2 | `mismo` library (riskiest piece) | Bindings generated from the local XSD, mapper covers the supported URLA subset, emitted XML validates and round-trips | FR-03, FR-04, NFR-01, NFR-02 |
 | 3 | `core` drafts and versions | Draft API, finalize into an immutable hashed version, borrower sessions, encryption of stored versions | FR-01, FR-02, NFR-05 |
 | 4 | `core` consent and audit | Grants (version-bound, expiring, revocable), lender credentials, lender fetch API, hash-chained audit log | FR-05–FR-07, NFR-03, NFR-04 |
