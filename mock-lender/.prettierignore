@@ -6,4 +6,4 @@ app/lib/core/openapi.json
 pnpm-lock.yaml
 AGENTS.md
 
-drizzle/**/snapshot.sql
+drizzle/**/snapshot.json
