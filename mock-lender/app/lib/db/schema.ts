@@ -29,7 +29,7 @@ export const receivedCopyTable = snakeCase.table(
   "received_copy",
   {
     id: serial().primaryKey(),
-    clientId: integer().notNull(),
+    clientId: text().notNull(),
     grantId: integer().notNull(),
     sha256: text().notNull(),
     xml: bytea().notNull(),

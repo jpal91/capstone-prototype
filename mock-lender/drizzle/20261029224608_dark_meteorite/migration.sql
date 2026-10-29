@@ -12,7 +12,7 @@ CREATE TABLE "core_grant" (
 --> statement-breakpoint
 CREATE TABLE "received_copy" (
 	"id" serial PRIMARY KEY,
-	"client_id" integer NOT NULL,
+	"client_id" text NOT NULL,
 	"grant_id" integer NOT NULL,
 	"sha256" text NOT NULL,
 	"xml" bytea NOT NULL,

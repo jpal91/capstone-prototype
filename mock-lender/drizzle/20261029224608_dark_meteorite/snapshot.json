@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "8a16778e-e49e-4551-a9d1-206b804bf01d",
+  "id": "cd56eac6-a23d-4e3c-ae68-b0c09474405d",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -136,7 +136,7 @@
       "table": "received_copy"
     },
     {
-      "type": "integer",
+      "type": "text",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
