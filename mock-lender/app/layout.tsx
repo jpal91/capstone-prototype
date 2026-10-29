@@ -13,7 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "%s - Mock Lender",
+  title: {
+    template: "%s · Mock Lender",
+    default: "Mock Lender",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

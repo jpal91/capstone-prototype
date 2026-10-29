@@ -31,6 +31,8 @@ services:
       POSTGRES_USER: core
       POSTGRES_PASSWORD: core
       POSTGRES_DB: core
+    volumes:
+      - ./mock-lender/db:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U core -d core"]
       interval: 2s
