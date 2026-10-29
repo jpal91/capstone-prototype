@@ -5,3 +5,5 @@ app/lib/core/openapi.json
 # Written by pnpm and by `next dev` (it re-adds its AGENTS.md block).
 pnpm-lock.yaml
 AGENTS.md
+
+drizzle/**/snapshot.sql
