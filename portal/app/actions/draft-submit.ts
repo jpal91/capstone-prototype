@@ -13,6 +13,7 @@ import {
   liabilityTypeValues,
   components,
 } from "@/app/lib/core/schema";
+import { coreFieldErrors } from "./utils";
 
 // "assets.0.amount" -> { assets: [{ amount }] }. Keys come from an untrusted
 // POST, so skip anything that could reach Object.prototype.
@@ -141,18 +142,6 @@ const DraftSaveFormSchema = z.object({
     })
     .optional(),
 }) satisfies z.ZodType<components["schemas"]["UrlaDraft-Input"]>;
-
-// Same keys as the form's input names. FastAPI puts request-body errors under
-// "body": ["body", "assets", 0, "amount"] -> "assets.0.amount".
-const coreFieldErrors = (
-  detail: components["schemas"]["ValidationError"][] = [],
-) =>
-  Object.fromEntries(
-    detail.map((d) => [
-      (d.loc[0] === "body" ? d.loc.slice(1) : d.loc).join("."),
-      d.msg.replace(/^Value error, /, ""),
-    ]),
-  );
 
 export type SubmitDraftState =
   | { status: "idle" }

@@ -37,3 +37,15 @@ export const getGrants = async () => {
 
   return data;
 };
+
+export const getLenders = async () => {
+  const { data, error, response } = await core.GET("/lenders");
+  const status = response.status;
+
+  if (error) {
+    console.error("fetch lenders failed with status ", status);
+    return null;
+  }
+
+  return data;
+};
