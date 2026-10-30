@@ -12,7 +12,8 @@ export type SyncGrantsResponse =
 export type FetchApplicationResponse =
   | { status: "success"; sha256: string }
   | { status: "ended"; message: string }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string }
+  | { status: "unknown_grant"; message: string };
 
 export const syncGrants = async (
   clientId: string,
@@ -125,7 +126,7 @@ export const fetchApplication = async (
 
   if (!grant.length) {
     return {
-      status: "error",
+      status: "unknown_grant",
       message: "Unknown grant, sync first",
     };
   }
