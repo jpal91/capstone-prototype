@@ -19,7 +19,8 @@ information is collected (NFR-01, NFR-02).
 | `/borrower/application`       | The pre-application form: save, or save and finalize                                                                                                               | FR-01, FR-02        |
 | `/borrower/versions/[id]/xml` | The exact stored XML bytes, with `X-Content-SHA256`                                                                                                                | FR-02               |
 
-The lender view (`/lender`, FR-10) is not built yet.
+The lender side is a separate app, `mock-lender` (http://localhost:3001,
+FR-10); the landing page links to it.
 
 ## Run
 

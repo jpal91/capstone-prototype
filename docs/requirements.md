@@ -22,8 +22,8 @@ This is the single list of requirement IDs used by the paper (Ch. 4 defines them
 | FR-06 | The borrower can revoke any grant independently; other grants are unaffected. | §2.3.2, §2.3.4 | `core` `POST /grants/{id}/revoke`; `portal` Revoke button; ADR 0002 | Revoke A; A denied, B still allowed | Core |
 | FR-07 | A lender can fetch an application only with a grant that is its own, not revoked, and not expired. The response is exactly the bound version's bytes (hash matches). | §2.3.2, §5.4, §6.2 | `core` `GET /lender/grants/{id}/application`; ADR 0003 | Consent matrix: own/other lender × active/revoked/expired; hash check on success; every denial returns the same 404, and its audit entry records the reason | Core |
 | FR-08 | The borrower can see every grant's status and when each lender last fetched. | §2.3.4 | `core` `GET /grants` (`lastFetchedAt` from the audit log); `portal` `/borrower` | Scenario reads grant list after fetches | Core |
-| FR-09 | When a grant is created, the lender receives a notification that carries no application data. | §5.4 | Not built. `core` `GET /lender/grants` stands in (lenders poll); ADR 0003 | Notification received; payload has no application fields | Cut line |
-| FR-10 | A demo lender view shows what each mock lender has received and its current access status. | §7.2 | Not built (`portal` `/lender`, `mock-lender`) | Screenshot (Ch. 7); not automated | Cut line |
+| FR-09 | When a grant is created, the lender receives a notification that carries no application data. | §5.4 | Not built. `core` `GET /lender/grants` stands in (lenders poll; `mock-lender`'s "Check for applications"); ADR 0003 | Notification received; payload has no application fields | Cut line |
+| FR-10 | A demo lender view shows what each mock lender has received and its current access status. | §7.2 | `mock-lender` `/lenders/[clientId]` (a separate app with its own database, not a portal page) | Screenshot (Ch. 7); not automated. `mock-lender`'s `/api` routes let `eval/` check what each lender holds | Cut line |
 
 ## Non-functional and security requirements
 
@@ -34,8 +34,8 @@ This is the single list of requirement IDs used by the paper (Ch. 4 defines them
 | NFR-03 | Each lender authenticates with its own credentials; one lender's credentials cannot read another lender's grants. | §6.1 | `core.auth.current_lender` (HTTP Basic, per-lender secret stored as SHA-256); ADR 0003 | Lender B uses its credentials on Lender A's grant → denied | Core |
 | NFR-04 | Every finalize, grant, revoke, fetch, and denied fetch adds an entry to an append-only audit log in which each entry stores the previous entry's hash; the chain verifies end to end. | §6.2, §6.4 | `core.audit` (`append`, `verify_chain`), `audit_event` triggers; ADR 0004 | Run scenario, check entry count per action, verify chain; tamper with one row → verification fails | Core |
 | NFR-05 | Stored version XML is encrypted at rest with a key supplied through the environment. | §6.4 | Not built | Raw database column is not readable XML; fetch still returns the original bytes | Cut line |
-| NFR-06 | All data is synthetic. | `AGENTS.md` guardrails | `core-seed` (`seed.py`); `portal` notice on `/` and `/login` | Review; not automated | Core |
-| NFR-07 | The whole system starts with `docker compose up --build` and is removed with `docker compose down -v`; `eval/` runs in the same environment. | §3.3, §7 | `compose.yml` (`db`, `seed`, `core`, `portal`) | The eval run itself | Core |
+| NFR-06 | All data is synthetic. | `AGENTS.md` guardrails | `core-seed` (`seed.py`); `portal` notice on `/` and `/login`; `mock-lender` notice on `/` | Review; not automated | Core |
+| NFR-07 | The whole system starts with `docker compose up --build` and is removed with `docker compose down -v`; `eval/` runs in the same environment. | §3.3, §7 | `compose.yml` (`db`, `seed`, `core`, `portal`, `mock-lender`) | The eval run itself | Core |
 | NFR-08 | Every borrower route requires a valid session, and a borrower can read or change only their own draft, versions, and grants. | §6.1 | `core.auth.current_session` / `current_borrower`, borrower filters in `core/services.py`; `portal` session cookie | No session → 401; borrower B on A's draft, versions, or grants → 404 | Core |
 
 ## Known limitations to demonstrate (not requirements — expected outcomes)
@@ -44,7 +44,7 @@ These are things the design intentionally does *not* do. `eval/` should show eac
 
 | ID | Limitation | Source | Shown by |
 |---|---|---|---|
-| L-01 | Revocation stops future fetches but cannot take back a copy a lender already fetched. | §5.4, §6.1 | After revoking A, `mock-lender` still holds A's earlier copy |
+| L-01 | Revocation stops future fetches but cannot take back a copy a lender already fetched. | §5.4, §6.1 | After revoking A, `mock-lender` still holds A's earlier copy (`GET /api/lenders/lender-a/copies`), while A's next fetch gets the uniform 404 |
 | L-02 | Output is valid against the DU schema but not DU-submittable: the SSN is absent, and no ULAD/DU extension data (e.g., HMDA demographics, which NFR-02 excludes) is emitted. | §4.4, §10.1 | Note alongside FR-03 results |
 | L-03 | Single borrower only; no co-borrower. | §10.1 | Scope statement; not automated |
 | L-04 | Employment income is recorded as a wage (`CURRENT_INCOME_ITEM`, `IncomeType` Base). A self-employed borrower with a 25% or greater ownership share reports a single monthly income or loss (`EmploymentMonthlyIncomeAmount`) on the URLA instead, which the subset cannot represent; importing such a file is rejected rather than relabeled as a wage. Only base pay is imported: other income items in a lender's file (overtime, bonus, dividends, ...) are ignored, so the imported income can be lower than the file states. | §4.1, §10.1 | `from_xml` rejects DU test case DI-CL01 with a clear error; reading DI-C01 keeps its Base item and drops its six other income items |
