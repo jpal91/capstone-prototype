@@ -1,8 +1,9 @@
 from collections import defaultdict
 
-from pytest import Config, Item, Session, UsageError
+from pytest import Config, Item, Session, TestReport, UsageError
 
 REQ_MAP: defaultdict[str, set[str]] = defaultdict(set)
+RESULT_MAP: dict[str, str] = {}
 
 
 def pytest_configure(config: Config) -> None:
@@ -21,7 +22,7 @@ def pytest_collection_modifyitems(
                 REQ_MAP[nodeid].add(arg)
 
         if nodeid not in REQ_MAP:
-            empty_reqs.append(f"{item.path.name}::{item.name}")
+            empty_reqs.append(item.nodeid)
 
     if empty_reqs:
         names = "\n".join(empty_reqs)
@@ -30,3 +31,24 @@ def pytest_collection_modifyitems(
         )
 
     print(REQ_MAP)
+
+
+def pytest_runtest_logreport(report: TestReport) -> None:
+    if report.nodeid not in RESULT_MAP:
+        RESULT_MAP[report.nodeid] = "passed"
+
+    if report.when == "setup" and report.outcome in ("skipped", "failed"):
+        RESULT_MAP[report.nodeid] = (
+            "error" if report.outcome == "failed" else report.outcome
+        )
+    elif report.when == "call" and report.outcome in ("skipped", "failed"):
+        RESULT_MAP[report.nodeid] = report.outcome
+    elif (
+        report.when == "teardown"
+        and report.outcome == "failed"
+        and RESULT_MAP[report.nodeid] == "passed"
+    ):
+        RESULT_MAP[report.nodeid] = "error"
+
+    if report.when == "teardown":
+        print(RESULT_MAP)
