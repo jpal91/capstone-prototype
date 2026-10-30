@@ -5,12 +5,14 @@ import { coreGrantTable, receivedCopyTable } from "@/app/lib/db/schema";
 import { and, eq, isNull, notInArray, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
 
-type SyncGrantsResponse =
+export type SyncGrantsResponse =
   | { status: "success"; listed: number; added: number; ended: number }
   | { status: "error"; message: string };
 
-type FetchApplicationResponse =
-  { status: "success"; sha256: string } | { status: "error"; message: string };
+export type FetchApplicationResponse =
+  | { status: "success"; sha256: string }
+  | { status: "ended"; message: string }
+  | { status: "error"; message: string };
 
 export const syncGrants = async (
   clientId: string,
@@ -173,7 +175,7 @@ export const fetchApplication = async (
       .where(thisGrant);
 
     return {
-      status: "error",
+      status: "ended",
       message: "Access has ended for this application",
     };
   } else if (!response.ok) {
