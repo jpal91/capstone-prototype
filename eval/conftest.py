@@ -11,6 +11,8 @@ from support.clients import (
     mock_lender_client,
 )
 
+pytest_plugins = ["support.report"]
+
 
 @pytest.fixture(scope="session")
 def config() -> settings.Settings:
