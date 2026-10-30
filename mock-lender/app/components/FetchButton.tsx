@@ -40,7 +40,7 @@ const FetchButton = ({
         {state.status === "ended" && (
           <span className="opacity-70">{state.message}</span>
         )}
-        {state.status === "error" && (
+        {(state.status === "error" || state.status === "unknown_grant") && (
           <span className="text-error">{state.message}</span>
         )}
       </div>

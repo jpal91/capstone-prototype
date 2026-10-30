@@ -16,15 +16,12 @@ export default function Home() {
         <Link href="/borrower" className="btn btn-outline lg:btn-lg">
           Borrower Dashboard
         </Link>
-        {/* The lender view arrives with the mock lender (FR-10). */}
-        <button
-          type="button"
-          className="btn btn-outline lg:btn-lg"
-          disabled
-          title="Not built yet"
-        >
+        {/* A separate app (mock-lender), standing in for the lenders' own
+            systems (FR-10). Its compose port; a plain <a>, since it's
+            another origin. */}
+        <a href="http://localhost:3001" className="btn btn-outline lg:btn-lg">
           Lender Dashboard
-        </button>
+        </a>
       </div>
       <DemoNotice />
     </main>

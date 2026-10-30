@@ -10,12 +10,19 @@ x-core-env: &core-env
 
 # Demo credentials for the synthetic accounts (NFR-06). They are public by
 # design, so use them only for this local demo; override any of them from the
-# shell or a .env file next to this one.
-x-demo-credentials: &demo-credentials
+# shell or a .env file next to this one. Split so that each service gets only
+# what it uses: seed needs all of them; mock-lender only its lenders' secrets.
+x-borrower-credentials: &borrower-credentials
   ALICE_PASSWORD: ${ALICE_PASSWORD:-demo-labials-Reacted-pigmy-Prep-tanners-24!}
   BOB_PASSWORD: ${BOB_PASSWORD:-demo-loopy-Tycoons-irately-Unify-attic-38!}
+
+# The lenders mock-lender acts for.
+x-mock-lender-secrets: &mock-lender-secrets
   LENDER_A_SECRET: ${LENDER_A_SECRET:-demo-stories-Civilly-trachea-Filbert-chisels-53!}
   LENDER_B_SECRET: ${LENDER_B_SECRET:-demo-acquits-Tangelo-loam-Wide-droned-67!}
+
+# Lender C has no mock lender; eval/ uses it as a lender with no grant.
+x-lender-c-secret: &lender-c-secret
   LENDER_C_SECRET: ${LENDER_C_SECRET:-demo-gerunds-Mask-impure-Dowdily-tenting-55!}
 
 x-core-build: &core-build
@@ -44,7 +51,8 @@ services:
     build: *core-build
     command: ["core-seed"]
     environment:
-      <<: [*core-env, *demo-credentials]
+      <<:
+        [*core-env, *borrower-credentials, *mock-lender-secrets, *lender-c-secret]
     depends_on:
       db:
         condition: service_healthy
@@ -86,6 +94,32 @@ services:
         - node
         - -e
         - "fetch('http://localhost:3000/login').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # Stands in for the lenders' own systems, on http://localhost:3001. Its own
+  # database (lender, created by mock-lender/db/init.sql) and only its
+  # lenders' credentials; it reaches core over HTTP like any lender (ADR 0003).
+  mock-lender:
+    build:
+      context: .
+      dockerfile: mock-lender/Dockerfile
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      <<: *mock-lender-secrets
+      DATABASE_URL: postgres://lender:lender@db:5432/lender
+      CORE_URL: http://core:8000
+    depends_on:
+      core:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3001/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
       interval: 2s
       timeout: 3s
       retries: 15
