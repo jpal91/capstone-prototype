@@ -1,0 +1,1 @@
+ALTER TABLE "core_grant" ADD COLUMN "last_fetch_attempt_at" timestamp with time zone;

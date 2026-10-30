@@ -20,7 +20,10 @@ export const coreGrantTable = snakeCase.table(
     lastListedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     expiresAt: timestamp({ withTimezone: true }).notNull(),
     accessEndedAt: timestamp({ withTimezone: true }),
-    lastFetchStatus: text(),
+    lastFetchStatus: text({
+      enum: ["ok", "access_ended", "hash_mismatch", "error"],
+    }),
+    lastFetchAttemptAt: timestamp({ withTimezone: true }),
   },
   (table) => [primaryKey({ columns: [table.clientId, table.grantId] })],
 );

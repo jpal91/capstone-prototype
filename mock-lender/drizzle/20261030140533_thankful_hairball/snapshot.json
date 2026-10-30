@@ -1,0 +1,270 @@
+{
+  "version": "8",
+  "dialect": "postgres",
+  "id": "ac988267-3d08-4dde-b9af-d80b9f6a13c0",
+  "prevIds": [
+    "cd56eac6-a23d-4e3c-ae68-b0c09474405d"
+  ],
+  "ddl": [
+    {
+      "isRlsEnabled": false,
+      "name": "core_grant",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "received_copy",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "client_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "grant_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "listed_sha256",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "first_seen_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "last_listed_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expires_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "access_ended_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "last_fetch_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "last_fetch_attempt_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "received_copy"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "client_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "received_copy"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "grant_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "received_copy"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sha256",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "received_copy"
+    },
+    {
+      "type": "bytea",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "xml",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "received_copy"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fetched_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "received_copy"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "client_id",
+        "grant_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "core_grant",
+      "columnsTo": [
+        "client_id",
+        "grant_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "received_copy_HSZ4QhNDTwZu_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "received_copy"
+    },
+    {
+      "columns": [
+        "client_id",
+        "grant_id"
+      ],
+      "nameExplicit": false,
+      "name": "core_grant_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "core_grant"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "received_copy_pkey",
+      "schema": "public",
+      "table": "received_copy",
+      "entityType": "pks"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "client_id",
+        "grant_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "received_copy_client_id_grant_id_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "received_copy"
+    }
+  ],
+  "renames": []
+}
