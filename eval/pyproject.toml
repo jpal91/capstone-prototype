@@ -1,0 +1,24 @@
+[project]
+name = "eval"
+version = "0.1.0"
+description = "Black-box scenario suite for the prototype, tagged by requirement ID"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+]
+
+# Not a workspace member and not an installable package: it tests the running
+# services over HTTP and never imports core or mismo.
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["scenarios"]
+pythonpath = ["."]
+addopts = ["--strict-markers"]
+
+# Its own ruff section, so ruff doesn't use the workspace's (whose `src`
+# would make `support` sort as third-party).
+[tool.ruff]
+src = ["."]
