@@ -1,4 +1,5 @@
 import type { CoreGrantRowSelect } from "@/app/lib/db/schema";
+import FetchButton from "./FetchButton";
 import { formatDateTime } from "./format";
 
 type Grant = CoreGrantRowSelect;
@@ -14,7 +15,7 @@ const FETCH_RESULT: Record<
   error: { label: "Error", badge: "badge-warning" },
 };
 
-const GrantRow = ({ grant }: { grant: Grant }) => {
+const GrantRow = ({ clientId, grant }: { clientId: string; grant: Grant }) => {
   const result = grant.lastFetchStatus && FETCH_RESULT[grant.lastFetchStatus];
 
   return (
@@ -54,11 +55,20 @@ const GrantRow = ({ grant }: { grant: Grant }) => {
       <td className="font-mono text-sm" title={grant.listedSha256}>
         {grant.listedSha256.slice(0, 12)}…
       </td>
+      <td>
+        <FetchButton clientId={clientId} grantId={grant.grantId} />
+      </td>
     </tr>
   );
 };
 
-const GrantsTable = ({ grants }: { grants: Grant[] }) => {
+const GrantsTable = ({
+  clientId,
+  grants,
+}: {
+  clientId: string;
+  grants: Grant[];
+}) => {
   if (grants.length === 0) {
     return (
       <p className="opacity-70">
@@ -78,11 +88,12 @@ const GrantsTable = ({ grants }: { grants: Grant[] }) => {
             <th>Expires</th>
             <th>Last fetch</th>
             <th>Listed SHA-256</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {grants.map((g) => (
-            <GrantRow key={g.grantId} grant={g} />
+            <GrantRow key={g.grantId} clientId={clientId} grant={g} />
           ))}
         </tbody>
       </table>

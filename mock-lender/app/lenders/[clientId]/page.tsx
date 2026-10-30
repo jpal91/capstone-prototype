@@ -5,6 +5,7 @@ import { listLenders } from "@/app/lib/lenders";
 import { getCoreGrants, getReceivedCopies } from "@/app/lib/data";
 import CopyCard from "@/app/components/CopyCard";
 import GrantsTable from "@/app/components/GrantsTable";
+import SyncButton from "@/app/components/SyncButton";
 
 const findLender = (clientId: string) =>
   listLenders().find((l) => l.clientId === clientId);
@@ -39,8 +40,11 @@ const LenderPage = async ({ params }: PageProps<"/lenders/[clientId]">) => {
         <p className="opacity-70 mb-12">
           Client ID <span className="font-mono">{lender.clientId}</span>
         </p>
-        <h2 className="text-3xl font-bold mb-6">Shared applications</h2>
-        <GrantsTable grants={grants} />
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h2 className="text-3xl font-bold">Shared applications</h2>
+          <SyncButton clientId={lender.clientId} />
+        </div>
+        <GrantsTable clientId={lender.clientId} grants={grants} />
       </section>
 
       <section className="w-full flex flex-col">
