@@ -9,6 +9,9 @@ type CopyCardProps = {
 };
 
 const CopyCard = ({ copy, accessEnded }: CopyCardProps) => {
+  // The exact bytes this lender received and stored.
+  const xmlHref = `/lenders/${copy.clientId}/copies/${copy.grantId}/xml`;
+
   return (
     <div className="card card-border bg-base-100">
       <div className="card-body">
@@ -34,6 +37,25 @@ const CopyCard = ({ copy, accessEnded }: CopyCardProps) => {
             the copy it fetched earlier.
           </div>
         )}
+
+        {/* Plain <a>: these go to a route handler, not a page. */}
+        <div className="card-actions justify-end">
+          <a
+            href={xmlHref}
+            target="_blank"
+            rel="noopener"
+            className="btn btn-ghost btn-sm"
+          >
+            View XML
+          </a>
+          <a
+            href={xmlHref}
+            download={`application-grant-${copy.grantId}.xml`}
+            className="btn btn-sm"
+          >
+            Download
+          </a>
+        </div>
       </div>
     </div>
   );
