@@ -1,5 +1,6 @@
 "use server";
 import * as z from "zod";
+import { refresh } from "next/cache";
 
 import {
   syncGrants,
@@ -7,7 +8,6 @@ import {
   type FetchApplicationResponse,
   fetchApplication,
 } from "@/app/lib/grants";
-import { refresh } from "next/cache";
 
 export type SyncGrantFormState = SyncGrantsResponse | { status: "idle" };
 export type FetchApplicationFormState =

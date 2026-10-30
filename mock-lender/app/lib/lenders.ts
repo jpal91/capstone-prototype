@@ -28,3 +28,11 @@ export const getLender = (clientId: string) => {
     return { ...lender, secret };
   }
 };
+
+export const listLenders = () => {
+  return LENDERS.map((l) => ({ clientId: l.clientId, name: l.name }));
+};
+
+export const isKnownLender = (clientId: string) => {
+  return LENDERS.some((l) => l.clientId === clientId);
+};
