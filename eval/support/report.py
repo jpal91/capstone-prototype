@@ -1,8 +1,9 @@
 import json
 import os
+import textwrap
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import IntEnum
 from pathlib import Path
 from typing import Any, Literal
@@ -48,7 +49,7 @@ class CombinedResults:
 
     @property
     def overall_result(self) -> str:
-        return str(min(self.outcomes)) if self.outcomes else "not tested"
+        return str(min(self.outcomes.values())) if self.outcomes else "not tested"
 
 
 @dataclass
@@ -170,8 +171,12 @@ def generate_json_report(
     exit_status: int,
 ) -> dict[str, Any]:
     json_out = {
-        "testTimestamp": datetime.now().isoformat(),
+        "testTimestamp": datetime.now(UTC).isoformat(),
         "totalTestsRun": 0,
+        "totalTestsPassed": 0,
+        "totalTestsFailed": 0,
+        "totalTestsSkipped": 0,
+        "totalTestsError": 0,
         "exitStatus": exit_status,
     }
     table_mapping = {}
@@ -187,7 +192,7 @@ def generate_json_report(
             "description": req.req_text,
             "totalNumberOfTests": len(results.outcomes),
             "totalTestsPassed": len([
-                r for r in results.outcomes if r == Outcome.PASSED
+                r for r in results.outcomes.values() if r == Outcome.PASSED
             ]),
             "overallResult": results.overall_result,
             "verification": req.verification,
@@ -196,11 +201,87 @@ def generate_json_report(
             ],
         }
 
-        json_out["totalTestsRun"] += len(row["tests"])
         table_mapping[req.table].append(row)
+
+    for outcome in RESULT_MAP.values():
+        json_out["totalTestsRun"] += 1
+
+        match outcome:
+            case Outcome.PASSED:
+                json_out["totalTestsPassed"] += 1
+            case Outcome.FAILED:
+                json_out["totalTestsFailed"] += 1
+            case Outcome.ERROR:
+                json_out["totalTestsError"] += 1
+            case Outcome.SKIPPED:
+                json_out["totalTestsSkipped"] += 1
 
     json_out["tables"] = table_mapping
     return json_out
+
+
+def generate_table(table: str, rows: list[dict[str, Any]]) -> str:
+    out = ""
+    match table:
+        case "FR":
+            out += "### Functional Requirements\n\n"
+        case "NFR":
+            out += "### Non-functional and Security Requirements\n\n"
+        case "L":
+            out += "### Known Limitations to Demonstrate\n\n"
+
+    out += "| ID | Result | Tests passed | "
+    if table == "L":
+        out += "Limitation |\n"
+    else:
+        out += "Requirement |\n"
+
+    for row in rows:
+        tests = row["tests"]
+        tests_n = len(tests)
+        passed = sum(1 for test in tests if test["outcome"] == "passed")
+        desc = textwrap.shorten(row["description"], 80, placeholder="...")
+
+        out += f"| {row['requirementId']} | {row['overallResult']} | {passed}/{tests_n} | {desc}\n"
+
+    out += "\n"
+
+    return out
+
+
+def generate_md_report(json_out: dict[str, Any]) -> str:
+    out = "# Results\n\n"
+    total = json_out["totalTestsRun"]
+    passed = json_out["totalTestsPassed"]
+    skipped = json_out["totalTestsSkipped"]
+    error = json_out["totalTestsError"]
+    failed = json_out["totalTestsFailed"]
+
+    out += f"Run {json_out['testTimestamp']}. {total} tests: {passed} passed, {failed} failed, {skipped} skipped, {error} errors.\n\n"
+
+    out += "## Results by table\n\n"
+
+    for table, rows in json_out["tables"].items():
+        out += generate_table(table, rows)
+
+    out += "## Tests that did not pass\n\n"
+
+    no_pass = [(t, o) for t, o in RESULT_MAP.items() if o != Outcome.PASSED]
+
+    for test, outcome in no_pass:
+        markers = ", ".join(MARKER_MAP[test])
+        out += f"- `{test}`: {outcome} ({markers})\n"
+
+    out += "\n## Not tested by `eval/`\n\n| ID | Intented Check |\n|---|---|\n"
+
+    for trows in json_out["tables"].values():
+        for row in trows:
+            if row["overallResult"] != "not tested":
+                continue
+
+            out += f"| {row['requirementId']} | {row['verification']} |\n"
+
+    return out
 
 
 def pytest_sessionfinish(session: Session, exitstatus: int) -> None:
@@ -217,4 +298,9 @@ def pytest_sessionfinish(session: Session, exitstatus: int) -> None:
     with open(RESULTS_DIRECTORY / "results.json", "w") as f:
         json.dump(json_out, f, indent=2)
 
-    print(json_out, "here")
+    md_results = generate_md_report(json_out)
+
+    with open(RESULTS_DIRECTORY / "results.md", "w") as f:
+        f.write(md_results)
+
+    # print(json_out, "here")
