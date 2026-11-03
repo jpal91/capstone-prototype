@@ -1,3 +1,4 @@
+import json
 import os
 from collections import defaultdict
 from dataclasses import dataclass
@@ -17,6 +18,7 @@ from pytest import (
 )
 
 DEFAULT_REQUIREMENTS = Path(__file__).parents[2] / "docs" / "requirements.md"
+RESULTS_DIRECTORY = Path(__file__).parents[1] / "results"
 REQUIREMENTS_PATH = Path(os.getenv("REQUIREMENTS_PATH", DEFAULT_REQUIREMENTS))
 MARKER_MAP: defaultdict[str, set[str]] = defaultdict(set)
 REQ_MAP: dict[str, "Requirement"] = {}
@@ -163,8 +165,15 @@ def combined_results(
 
 
 def generate_json_report(
-    req_map: dict[str, Requirement], comb_results: dict[str, CombinedResults]
+    req_map: dict[str, Requirement],
+    comb_results: dict[str, CombinedResults],
+    exit_status: int,
 ) -> dict[str, Any]:
+    json_out = {
+        "testTimestamp": datetime.now().isoformat(),
+        "totalTestsRun": 0,
+        "exitStatus": exit_status,
+    }
     table_mapping = {}
 
     for req in req_map.values():
@@ -187,9 +196,11 @@ def generate_json_report(
             ],
         }
 
+        json_out["totalTestsRun"] += len(row["tests"])
         table_mapping[req.table].append(row)
 
-    return table_mapping
+    json_out["tables"] = table_mapping
+    return json_out
 
 
 def pytest_sessionfinish(session: Session, exitstatus: int) -> None:
@@ -199,14 +210,11 @@ def pytest_sessionfinish(session: Session, exitstatus: int) -> None:
         return
 
     comb_results = combined_results(REQ_MAP, RESULT_MAP, MARKER_MAP)
-    json_tables = generate_json_report(REQ_MAP, comb_results)
-    json_out = {
-        "testTimestamp": datetime.now().isoformat(),
-        "totalTestRan": sum(
-            sum(len(req["tests"]) for req in table) for table in json_tables.values()
-        ),
-        "exitStatus": exitstatus,
-        "tables": json_tables,
-    }
+    json_out = generate_json_report(REQ_MAP, comb_results, exitstatus)
+
+    RESULTS_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+    with open(RESULTS_DIRECTORY / "results.json", "w") as f:
+        json.dump(json_out, f, indent=2)
 
     print(json_out, "here")
