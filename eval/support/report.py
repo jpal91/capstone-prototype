@@ -173,7 +173,7 @@ def generate_json_report(
     exit_status: int,
 ) -> dict[str, Any]:
     json_out = {
-        "testTimestamp": datetime.now(UTC).isoformat(),
+        "testTimestamp": datetime.now(UTC).isoformat(timespec="seconds"),
         "totalTestsRun": 0,
         "totalTestsPassed": 0,
         "totalTestsFailed": 0,
@@ -235,7 +235,7 @@ def generate_table(table: str, rows: list[dict[str, Any]]) -> str:
         case "NFR":
             out += "### Non-functional and Security Requirements\n\n"
         case "L":
-            out += "### Known Limitations to Demonstrate\n\n"
+            out += "### Known Limitations to Demonstrate\n\n*A result of `passed` means the limiation was demonstrated*\n\n"
 
     out += "| ID | Result | Tests passed | "
     if table == "L":
@@ -250,7 +250,7 @@ def generate_table(table: str, rows: list[dict[str, Any]]) -> str:
         passed = row["totalTestsPassed"]
         desc = textwrap.shorten(row["description"], 80, placeholder="...")
 
-        out += f"| {row['requirementId']} | {row['overallResult']} | {passed}/{tests_n} | {desc}\n"
+        out += f"| {row['requirementId']} | {row['overallResult']} | {passed}/{tests_n} | {desc} |\n"
 
     out += "\n"
 
@@ -272,16 +272,18 @@ def generate_md_report(json_out: dict[str, Any]) -> str:
     for table, rows in json_out["tables"].items():
         out += generate_table(table, rows)
 
-    out += "## Tests that did not pass\n\n"
-
-    # no_pass = [(t, o) for t, o in RESULT_MAP.items() if o != Outcome.PASSED]
     no_pass = [t for t in json_out["tests"] if t["outcome"] != "passed"]
 
-    for test in no_pass:
-        markers = ", ".join(test["requirements"])
-        out += f"- `{test['testid']}`: {test['outcome']} ({markers})\n"
+    out += "## Tests that did not pass\n\n"
 
-    out += "\n## Not tested by `eval/`\n\n| ID | Intented Check |\n|---|---|\n"
+    if no_pass:
+        for test in no_pass:
+            markers = ", ".join(test["requirements"])
+            out += f"- `{test['testid']}`: {test['outcome']} ({markers})\n"
+    else:
+        out += "None\n"
+
+    out += "\n## Not tested by `eval/`\n\n| ID | Intended Check |\n|---|---|\n"
 
     for trows in json_out["tables"].values():
         for row in trows:
@@ -313,5 +315,3 @@ def pytest_sessionfinish(session: Session, exitstatus: int) -> None:
 
     with open(RESULTS_DIRECTORY / "results.md", "w") as f:
         f.write(md_results)
-
-    # print(json_out, "here")
