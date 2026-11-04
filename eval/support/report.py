@@ -168,6 +168,8 @@ def combined_results(
 def generate_json_report(
     req_map: dict[str, Requirement],
     comb_results: dict[str, CombinedResults],
+    res_map: dict[str, Outcome],
+    marker_map: dict[str, set[str]],
     exit_status: int,
 ) -> dict[str, Any]:
     json_out = {
@@ -178,6 +180,7 @@ def generate_json_report(
         "totalTestsSkipped": 0,
         "totalTestsError": 0,
         "exitStatus": exit_status,
+        "tests": [],
     }
     table_mapping = {}
 
@@ -196,14 +199,11 @@ def generate_json_report(
             ]),
             "overallResult": results.overall_result,
             "verification": req.verification,
-            "tests": [
-                {"testid": n, "outcome": str(o)} for n, o in results.outcomes.items()
-            ],
         }
 
         table_mapping[req.table].append(row)
 
-    for outcome in RESULT_MAP.values():
+    for outcome in res_map.values():
         json_out["totalTestsRun"] += 1
 
         match outcome:
@@ -215,6 +215,13 @@ def generate_json_report(
                 json_out["totalTestsError"] += 1
             case Outcome.SKIPPED:
                 json_out["totalTestsSkipped"] += 1
+
+    for name, out in res_map.items():
+        json_out["tests"].append({
+            "testid": name,
+            "outcome": str(out),
+            "requirements": sorted(marker_map[name]),
+        })
 
     json_out["tables"] = table_mapping
     return json_out
@@ -236,10 +243,11 @@ def generate_table(table: str, rows: list[dict[str, Any]]) -> str:
     else:
         out += "Requirement |\n"
 
+    out += "|---|---|---|---|\n"
+
     for row in rows:
-        tests = row["tests"]
-        tests_n = len(tests)
-        passed = sum(1 for test in tests if test["outcome"] == "passed")
+        tests_n = row["totalNumberOfTests"]
+        passed = row["totalTestsPassed"]
         desc = textwrap.shorten(row["description"], 80, placeholder="...")
 
         out += f"| {row['requirementId']} | {row['overallResult']} | {passed}/{tests_n} | {desc}\n"
@@ -266,11 +274,12 @@ def generate_md_report(json_out: dict[str, Any]) -> str:
 
     out += "## Tests that did not pass\n\n"
 
-    no_pass = [(t, o) for t, o in RESULT_MAP.items() if o != Outcome.PASSED]
+    # no_pass = [(t, o) for t, o in RESULT_MAP.items() if o != Outcome.PASSED]
+    no_pass = [t for t in json_out["tests"] if t["outcome"] != "passed"]
 
-    for test, outcome in no_pass:
-        markers = ", ".join(MARKER_MAP[test])
-        out += f"- `{test}`: {outcome} ({markers})\n"
+    for test in no_pass:
+        markers = ", ".join(test["requirements"])
+        out += f"- `{test['testid']}`: {test['outcome']} ({markers})\n"
 
     out += "\n## Not tested by `eval/`\n\n| ID | Intented Check |\n|---|---|\n"
 
@@ -291,7 +300,9 @@ def pytest_sessionfinish(session: Session, exitstatus: int) -> None:
         return
 
     comb_results = combined_results(REQ_MAP, RESULT_MAP, MARKER_MAP)
-    json_out = generate_json_report(REQ_MAP, comb_results, exitstatus)
+    json_out = generate_json_report(
+        REQ_MAP, comb_results, RESULT_MAP, MARKER_MAP, exitstatus
+    )
 
     RESULTS_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
