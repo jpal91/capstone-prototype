@@ -1,5 +1,6 @@
 # docker compose up --build    # run (NFR-07)
 # docker compose down -v       # remove everything, including the database
+# just eval-fresh              # the scenario suite on a fresh stack (eval/)
 #
 # Images built here contain the license-restricted MISMO schema and generated
 # bindings: never push them to a registry. Ports are bound to 127.0.0.1
@@ -123,3 +124,47 @@ services:
       interval: 2s
       timeout: 3s
       retries: 15
+
+  # The scenario suite (eval/). Only runs when asked for: `just eval`. Unlike the
+  # other services it reads core's database directly, for the audit checks. The
+  # schema and requirements are mounted, so the image holds no MISMO files, and
+  # create_host_path stops Docker creating a root-owned folder if one is missing.
+  eval:
+    profiles: [eval]
+    build:
+      context: .
+      dockerfile: eval/Dockerfile
+    command: ["--report"]
+    user: "${EVAL_UID:-1000}:${EVAL_GID:-1000}"
+    environment:
+      <<:
+        [*borrower-credentials, *mock-lender-secrets, *lender-c-secret]
+      CORE_URL: http://core:8000
+      MOCK_LENDER_URL: http://mock-lender:3001
+      CORE_DATABASE_URL: postgresql://core:core@db:5432/core
+      MISMO_SCHEMA: /schema/DU_Wrapper_3.4.0_B324.xsd
+      REQUIREMENTS_PATH: /requirements.md
+    volumes:
+      - type: bind
+        source: ./mismo/schema/staged
+        target: /schema
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docs/requirements.md
+        target: /requirements.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./eval/results
+        target: /app/results
+        bind:
+          create_host_path: false
+    depends_on:
+      core:
+        condition: service_healthy
+      mock-lender:
+        condition: service_healthy
+    restart: "no"

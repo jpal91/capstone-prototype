@@ -63,3 +63,18 @@ docker-down:
 
 # Restart container
 docker-restart: docker-down docker-up
+
+# Run the scenario suite against the stack as it is, starting it if needed, and
+# write eval/results/. With arguments, they replace --report and go to pytest, so
+# a partial run (`just eval -k draft`) can't overwrite the full report.
+eval *args:
+    @test -d {{ staged }} || just stage-schema
+    mkdir -p ./eval/results
+    docker compose --profile eval build eval
+    EVAL_UID=$(id -u) EVAL_GID=$(id -g) docker compose --profile eval run --rm eval {{ args }}
+
+# The official run: rebuild everything on an empty database, then run the suite.
+# This deletes the stack's data, including anything entered in the demo.
+eval-fresh: docker-down
+    docker compose up -d --build --wait
+    just eval
