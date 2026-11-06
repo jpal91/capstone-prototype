@@ -10,13 +10,7 @@ import httpx
 import pytest
 
 from support.clients import BorrowerClient, LenderClient, reply
-from support.data import ABSENT_ID, complete, expires_in
-
-
-def new_grant(alice: BorrowerClient, client_id: str, version_id: int) -> int:
-    response = alice.create_grant(client_id, version_id, expires_in(days=1))
-    assert response.status_code == 201
-    return response.json()["id"]
+from support.data import ABSENT_ID, complete
 
 
 def sync(mock_lender: httpx.Client, client_id: str) -> None:
@@ -47,7 +41,7 @@ def test_copy_outlives_revocation(
 ):
     version = alice.must_finalize(complete())
     xml = alice.version_xml(version["id"]).content
-    grant = new_grant(alice, "lender-a", version["id"])
+    grant = alice.must_grant("lender-a", version["id"], days=1)
     sync(mock_lender, "lender-a")
 
     fetched = fetch(mock_lender, "lender-a", grant)
@@ -75,7 +69,7 @@ def test_revoking_before_any_fetch_leaves_no_copy(
 ):
     """A lender holds only what it fetched, so the copy above isn't a given."""
     version = alice.must_finalize(complete())
-    grant = new_grant(alice, "lender-a", version["id"])
+    grant = alice.must_grant("lender-a", version["id"], days=1)
     sync(mock_lender, "lender-a")
 
     assert alice.revoke(grant).status_code == 200
@@ -91,8 +85,8 @@ def test_revoking_one_lender_leaves_the_others_access_and_copy(
 ):
     """The same as FR-06's direct test, through a lender's own system."""
     version = alice.must_finalize(complete())
-    grant_a = new_grant(alice, "lender-a", version["id"])
-    grant_b = new_grant(alice, "lender-b", version["id"])
+    grant_a = alice.must_grant("lender-a", version["id"], days=1)
+    grant_b = alice.must_grant("lender-b", version["id"], days=1)
     sync(mock_lender, "lender-a")
     sync(mock_lender, "lender-b")
     assert fetch(mock_lender, "lender-a", grant_a).status_code == 200

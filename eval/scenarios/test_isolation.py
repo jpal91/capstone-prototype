@@ -42,9 +42,7 @@ class Owned:
 
 def own_version_and_grant(borrower: BorrowerClient) -> Owned:
     version = borrower.must_finalize(complete())
-    grant = borrower.create_grant("lender-a", version["id"], expires_in(days=1))
-    assert grant.status_code == 201
-    return Owned(version["id"], grant.json()["id"])
+    return Owned(version["id"], borrower.must_grant("lender-a", version["id"], days=1))
 
 
 @pytest.fixture(scope="module")

@@ -1,8 +1,10 @@
 from collections.abc import Iterator
 
 import httpx
+import psycopg
 import pytest
 from lxml import etree  # ty: ignore
+from psycopg.rows import dict_row
 
 from support import settings
 from support.clients import (
@@ -98,3 +100,32 @@ def du_schema(config: settings.Settings) -> etree.XMLSchema:
             returncode=3,
         )
     return etree.XMLSchema(etree.parse(str(config.schema_path), PARSER))
+
+
+@pytest.fixture(scope="session", autouse=True)
+def core_db(config: settings.Settings) -> Iterator[psycopg.Connection]:
+    """A connection to core's database. Stops the run if it can't be reached.
+
+    The lock timeout stops a test hanging if it holds a lock core is waiting on.
+    """
+    try:
+        connection = psycopg.connect(
+            config.core_database_url, row_factory=dict_row, options="-c lock_timeout=5s"
+        )
+    except psycopg.OperationalError as e:
+        pytest.exit(f"eval: core's database is not reachable ({e})", returncode=3)
+    with connection:
+        yield connection
+
+
+@pytest.fixture
+def db(core_db: psycopg.Connection) -> Iterator[psycopg.Connection]:
+    """core's database, with everything the test did rolled back afterward.
+
+    A test must not call core while it holds changes here: they aren't committed,
+    and core could end up waiting on the same locks.
+    """
+    try:
+        yield core_db
+    finally:
+        core_db.rollback()

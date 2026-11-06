@@ -7,7 +7,6 @@ Whether the audit log records the real reason is checked with the audit log.
 """
 
 import hashlib
-import time
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -18,19 +17,6 @@ import pytest
 from support.clients import BorrowerClient, LenderClient, reply
 from support.data import ABSENT_ID, complete, expires_in
 from support.settings import Settings
-
-
-def status_of(alice: BorrowerClient, grant_id: int) -> dict[str, Any]:
-    """The grant as the borrower sees it in GET /grants."""
-    grants = alice.get("/grants")
-    assert grants.status_code == 200
-    return {grant["id"]: grant for grant in grants.json()}[grant_id]
-
-
-def new_grant(alice: BorrowerClient, client_id: str, version_id: int, **delta) -> int:
-    response = alice.create_grant(client_id, version_id, expires_in(**delta))
-    assert response.status_code == 201
-    return response.json()["id"]
 
 
 @dataclass(frozen=True)
@@ -48,16 +34,13 @@ def shared(alice: BorrowerClient, lender_a: LenderClient) -> Shared:
     xml = alice.version_xml(version["id"])
     assert xml.status_code == 200
 
-    active = new_grant(alice, "lender-a", version["id"], days=1)
-    revoked = new_grant(alice, "lender-a", version["id"], days=1)
+    active = alice.must_grant("lender-a", version["id"], days=1)
+    revoked = alice.must_grant("lender-a", version["id"], days=1)
     assert alice.revoke(revoked).status_code == 200
 
-    expired = new_grant(alice, "lender-a", version["id"], seconds=1.5)
+    expired = alice.must_grant("lender-a", version["id"], seconds=1.5)
     assert lender_a.fetch(expired).status_code == 200  # it worked until it expired
-    deadline = time.monotonic() + 10
-    while status_of(alice, expired)["status"] != "expired":
-        assert time.monotonic() < deadline, "the grant never expired"
-        time.sleep(0.1)
+    alice.wait_until_expired(expired)
 
     return Shared(
         version,
@@ -102,8 +85,8 @@ def test_only_granted_lenders_can_fetch(
     denied: tuple,
     shared: Shared,
 ):
-    grant_a = new_grant(alice, "lender-a", shared.version["id"], days=1)
-    grant_b = new_grant(alice, "lender-b", shared.version["id"], days=1)
+    grant_a = alice.must_grant("lender-a", shared.version["id"], days=1)
+    grant_b = alice.must_grant("lender-b", shared.version["id"], days=1)
 
     assert lender_a.fetch(grant_a).status_code == 200
     assert lender_b.fetch(grant_b).status_code == 200
@@ -114,7 +97,7 @@ def test_only_granted_lenders_can_fetch(
 @pytest.mark.req("FR-05")
 def test_grant_stays_on_its_version(alice: BorrowerClient, lender_a: LenderClient):
     first = alice.must_finalize(complete(borrower={"firstName": "First"}))
-    grant = new_grant(alice, "lender-a", first["id"], days=1)
+    grant = alice.must_grant("lender-a", first["id"], days=1)
     first_xml = alice.version_xml(first["id"]).content
 
     second = alice.must_finalize(complete(borrower={"firstName": "Second"}))
@@ -163,9 +146,9 @@ def test_revoke_stops_only_that_grant(
     shared: Shared,
 ):
     version_id = shared.version["id"]
-    revoked = new_grant(alice, "lender-a", version_id, days=1)
-    same_lender = new_grant(alice, "lender-a", version_id, days=1)
-    other_lender = new_grant(alice, "lender-b", version_id, days=1)
+    revoked = alice.must_grant("lender-a", version_id, days=1)
+    same_lender = alice.must_grant("lender-a", version_id, days=1)
+    other_lender = alice.must_grant("lender-b", version_id, days=1)
     assert lender_a.fetch(revoked).status_code == 200
 
     response = alice.revoke(revoked)
@@ -179,7 +162,7 @@ def test_revoke_stops_only_that_grant(
 
 @pytest.mark.req("FR-06")
 def test_revoking_twice_changes_nothing(alice: BorrowerClient, shared: Shared):
-    grant = new_grant(alice, "lender-a", shared.version["id"], days=1)
+    grant = alice.must_grant("lender-a", shared.version["id"], days=1)
     first = alice.revoke(grant)
     assert first.status_code == 200
 
@@ -285,7 +268,7 @@ def test_lender_routes_refuse_borrower_session(alice: BorrowerClient, shared: Sh
 @pytest.mark.req("FR-08")
 @pytest.mark.parametrize("state", ["active", "revoked", "expired"])
 def test_grant_list_shows_status(alice: BorrowerClient, shared: Shared, state: str):
-    assert status_of(alice, shared.grants[state])["status"] == state
+    assert alice.view_grant(shared.grants[state])["status"] == state
 
 
 @pytest.mark.req("FR-08")
@@ -295,19 +278,19 @@ def test_last_fetched_follows_successful_fetches(
     lender_b: LenderClient,
     shared: Shared,
 ):
-    grant = new_grant(alice, "lender-a", shared.version["id"], days=1)
-    assert status_of(alice, grant)["lastFetchedAt"] is None
+    grant = alice.must_grant("lender-a", shared.version["id"], days=1)
+    assert alice.view_grant(grant)["lastFetchedAt"] is None
 
     assert lender_b.fetch(grant).status_code == 404
-    assert status_of(alice, grant)["lastFetchedAt"] is None  # a denial isn't a fetch
+    assert alice.view_grant(grant)["lastFetchedAt"] is None  # a denial isn't a fetch
 
     assert lender_a.fetch(grant).status_code == 200
-    first = status_of(alice, grant)["lastFetchedAt"]
+    first = alice.view_grant(grant)["lastFetchedAt"]
     assert first is not None
 
     assert lender_a.fetch(grant).status_code == 200
-    second = status_of(alice, grant)["lastFetchedAt"]
+    second = alice.view_grant(grant)["lastFetchedAt"]
     assert datetime.fromisoformat(second) > datetime.fromisoformat(first)
 
     assert alice.revoke(grant).status_code == 200
-    assert status_of(alice, grant)["lastFetchedAt"] == second  # history stays
+    assert alice.view_grant(grant)["lastFetchedAt"] == second  # history stays

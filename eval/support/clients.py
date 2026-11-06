@@ -5,10 +5,12 @@ bodies themselves, so a check never hides inside a helper. `must_*` helpers
 are for setup steps that have to succeed before a scenario can start.
 """
 
+import time
 from typing import Any
 
 import httpx
 
+from support.data import expires_in
 from support.settings import LENDERS
 
 # Finalize maps and validates against the DU schema; give it room.
@@ -83,6 +85,26 @@ class BorrowerClient(httpx.Client):
                 f"POST /draft/finalize: {version.status_code} {version.text}"
             )
         return version.json()
+
+    def must_grant(self, client_id: str, version_id: int, **delta: float) -> int:
+        """Create a grant expiring after `delta` (days=1); returns its ID."""
+        response = self.create_grant(client_id, version_id, expires_in(**delta))
+        if response.status_code != 201:
+            raise RuntimeError(f"POST /grants: {response.status_code} {response.text}")
+        return response.json()["id"]
+
+    def view_grant(self, grant_id: int) -> dict[str, Any]:
+        """The grant as this borrower sees it in GET /grants."""
+        response = self.get("/grants")
+        response.raise_for_status()
+        return {grant["id"]: grant for grant in response.json()}[grant_id]
+
+    def wait_until_expired(self, grant_id: int) -> None:
+        deadline = time.monotonic() + 10
+        while self.view_grant(grant_id)["status"] != "expired":
+            if time.monotonic() > deadline:
+                raise RuntimeError(f"grant {grant_id} never expired")
+            time.sleep(0.1)
 
 
 class LenderClient(httpx.Client):

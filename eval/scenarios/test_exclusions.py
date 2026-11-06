@@ -1,35 +1,31 @@
 """NFR-01, NFR-02, L-02: the SSN and HMDA data stay out of the prototype.
 
-Names are compared word by word, because a substring search would flag harmless
-names: "ssn" is in "businessName", and "race" is in "GracePeriod".
-
-From outside, "stored" can only be shown through what core accepts and returns.
+"Stored" is the one claim that needs core's database: the last three tests read it.
 """
 
-import re
-from collections.abc import Iterable
 from typing import Any
 
 import httpx
+import psycopg
 import pytest
 from lxml import etree  # ty: ignore
 
 from support.clients import BorrowerClient
 from support.data import complete, drop_nulls, every_field
-from support.xml import MISMO_NS, fetch_finalized
-
-WORD = re.compile(r"[A-Z]+(?![a-z])|[A-Z]?[a-z]+")
-SSN_WORDS = {"ssn", "itin", "tin", "taxpayer"}
-HMDA_WORDS = {"hmda", "ethnicity", "race", "gender", "sex", "monitoring"}
+from support.exclusions import disallowed_elements, excluded
+from support.xml import MISMO_NS, PARSER, fetch_finalized
 
 
-def words(name: str) -> set[str]:
-    """`TaxpayerIdentifierValue` -> {"taxpayer", "identifier", "value"}."""
-    return {word.lower() for word in WORD.findall(name)}
-
-
-def excluded(names: Iterable[str]) -> set[str]:
-    return {name for name in names if words(name) & (SSN_WORDS | HMDA_WORDS)}
+def json_keys(value: Any) -> set[str]:
+    """Every key at any depth of a stored JSON value."""
+    keys: set[str] = set()
+    if isinstance(value, dict):
+        keys.update(value)
+        value = list(value.values())
+    if isinstance(value, list):
+        for item in value:
+            keys |= json_keys(item)
+    return keys
 
 
 def property_names(schema: Any) -> set[str]:
@@ -44,20 +40,6 @@ def property_names(schema: Any) -> set[str]:
         for item in schema:
             names |= property_names(item)
     return names
-
-
-def disallowed_elements(doc: etree._Element) -> set[str]:
-    """Elements for excluded data, and any extension or non-MISMO elements."""
-    found = set()
-    for element in doc.iter(etree.Element):
-        name = etree.QName(element)
-        if (
-            name.namespace != MISMO_NS
-            or "extension" in words(name.localname)
-            or excluded([name.localname])
-        ):
-            found.add(element.tag)
-    return found
 
 
 @pytest.fixture(scope="module")
@@ -132,3 +114,41 @@ def test_xml_check_finds_planted_element(emitted: etree._Element, tag: str):
     etree.SubElement(doc, tag)
 
     assert disallowed_elements(doc) == {tag}
+
+
+@pytest.mark.req("NFR-01", "NFR-02")
+def test_core_tables_have_no_excluded_columns(db: psycopg.Connection):
+    rows = db.execute(
+        "SELECT column_name FROM information_schema.columns"
+        " WHERE table_schema = 'public'"
+    ).fetchall()
+    names = {row["column_name"] for row in rows}
+
+    assert "expires_at" in names  # it did read core's tables
+    assert excluded(names) == set()
+
+
+@pytest.mark.req("NFR-01", "NFR-02")
+def test_stored_drafts_have_no_excluded_fields(
+    alice: BorrowerClient, db: psycopg.Connection
+):
+    assert alice.put_draft(every_field()).status_code == 204
+
+    keys = set()
+    for row in db.execute("SELECT data FROM draft").fetchall():
+        keys |= json_keys(row["data"])
+
+    assert "dateOfBirth" in keys  # it did read the draft's fields
+    assert excluded(keys) == set()
+
+
+@pytest.mark.req("NFR-01", "NFR-02")
+def test_stored_versions_have_no_disallowed_elements(
+    db: psycopg.Connection, emitted: etree._Element
+):
+    rows = db.execute("SELECT xml FROM version").fetchall()
+
+    assert rows  # `emitted` finalized one
+    for row in rows:
+        doc = etree.fromstring(bytes(row["xml"]), PARSER)
+        assert disallowed_elements(doc) == set()

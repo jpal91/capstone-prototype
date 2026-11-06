@@ -2,12 +2,16 @@
 
 URLs default to the ports compose publishes on localhost, for running the
 suite natively; the eval service in compose.yml points them at the service
-names. Credentials have no defaults here: compose.yml is their one source.
+names. Credentials have no defaults here: compose.yml is their one source. The
+exception is core's database URL, whose dev default core/settings.py also has.
 """
 
 import os
 from dataclasses import dataclass
 from pathlib import Path
+
+# The audit checks read core's database directly, as core's own role (L-06).
+DEFAULT_CORE_DATABASE = "postgresql://core:core@localhost:5432/core"
 
 # username -> environment variable holding the password (as in core-seed)
 BORROWERS = {
@@ -42,6 +46,7 @@ class Settings:
     core_url: str
     mock_lender_url: str
     schema_path: Path
+    core_database_url: str
     passwords: dict[str, str]
     secrets: dict[str, str]
 
@@ -59,6 +64,7 @@ def load() -> Settings:
         core_url=os.environ.get("CORE_URL", "http://localhost:8000"),
         mock_lender_url=os.environ.get("MOCK_LENDER_URL", "http://localhost:3001"),
         schema_path=Path(os.environ.get("MISMO_SCHEMA", DEFAULT_SCHEMA)),
+        core_database_url=os.environ.get("CORE_DATABASE_URL", DEFAULT_CORE_DATABASE),
         passwords={user: os.environ[var] for user, var in BORROWERS.items()},
         secrets={client_id: os.environ[var] for client_id, (_, var) in LENDERS.items()},
     )
