@@ -6,7 +6,7 @@ from support.data import complete, every_field
 from support.xml import MISMO, fetch_finalized
 
 
-@pytest.mark.req("FR-03")
+@pytest.mark.req("FR-03", "L-02")
 @pytest.mark.parametrize(
     "draft",
     [complete(), every_field()],
