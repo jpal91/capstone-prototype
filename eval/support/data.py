@@ -56,6 +56,41 @@ def complete(**changes: dict[str, Any]) -> dict[str, Any]:
     return draft
 
 
+def every_field() -> dict[str, Any]:
+    """COMPLETE with every optional field filled in, so more XML is emitted."""
+    draft = complete(
+        borrower={"phoneNumber": "+15205550123", "email": "evan@example.com"},
+        subjectProperty={
+            "streetAddress": "300 Sample Rd",
+            "city": "Tucson",
+            "state": "AZ",
+            "zipCode": "85702",
+            "monthlyTaxes": "310.00",
+            "monthlyHoi": "95.00",
+            "occupancy": "SecondHome",
+        },
+        income={"position": "Analyst"},
+        loan={"loanProgram": "FHA", "loanPurpose": "Refinance"},
+    )
+    draft["assets"].append(
+        {
+            "institutionName": "Sample Credit Union",
+            "assetType": "Savings",
+            "amount": "4000.00",
+        }
+    )
+    draft["liabilities"].append(
+        {
+            "institutionName": "Sample Auto",
+            "liabilityType": "Installment",
+            "monthsRemaining": 24,
+            "monthlyAmount": "310.00",
+            "balance": "7440.00",
+        }
+    )
+    return draft
+
+
 def drop_nulls(value: Any) -> Any:
     """`value` without null dict entries: core fills in unset optional fields.
 

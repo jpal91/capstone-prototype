@@ -7,6 +7,7 @@ names. Credentials have no defaults here: compose.yml is their one source.
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 # username -> environment variable holding the password (as in core-seed)
 BORROWERS = {
@@ -22,6 +23,15 @@ LENDERS = {
     "lender-c": ("Lender C", "LENDER_C_SECRET"),
 }
 
+# The licensed DU wrapper, staged by `just stage-schema`. Not in the repository.
+DEFAULT_SCHEMA = (
+    Path(__file__).parents[2]
+    / "mismo"
+    / "schema"
+    / "staged"
+    / "DU_Wrapper_3.4.0_B324.xsd"
+)
+
 
 class MissingSettings(Exception):
     pass
@@ -31,6 +41,7 @@ class MissingSettings(Exception):
 class Settings:
     core_url: str
     mock_lender_url: str
+    schema_path: Path
     passwords: dict[str, str]
     secrets: dict[str, str]
 
@@ -47,6 +58,7 @@ def load() -> Settings:
     return Settings(
         core_url=os.environ.get("CORE_URL", "http://localhost:8000"),
         mock_lender_url=os.environ.get("MOCK_LENDER_URL", "http://localhost:3001"),
+        schema_path=Path(os.environ.get("MISMO_SCHEMA", DEFAULT_SCHEMA)),
         passwords={user: os.environ[var] for user, var in BORROWERS.items()},
         secrets={client_id: os.environ[var] for client_id, (_, var) in LENDERS.items()},
     )

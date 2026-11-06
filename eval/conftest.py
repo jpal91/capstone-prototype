@@ -2,6 +2,7 @@ from collections.abc import Iterator
 
 import httpx
 import pytest
+from lxml import etree  # ty: ignore
 
 from support import settings
 from support.clients import (
@@ -10,6 +11,7 @@ from support.clients import (
     core_client,
     mock_lender_client,
 )
+from support.xml import PARSER
 
 pytest_plugins = ["support.report"]
 
@@ -85,3 +87,11 @@ def lender_c(config: settings.Settings) -> Iterator[LenderClient]:
 def mock_lender(config: settings.Settings) -> Iterator[httpx.Client]:
     with mock_lender_client(config.mock_lender_url) as client:
         yield client
+
+
+@pytest.fixture(scope="session")
+def du_schema(config: settings.Settings) -> etree.XMLSchema:
+    """The DU wrapper. It's licensed, so a missing copy skips what needs it."""
+    if not config.schema_path.is_file():
+        pytest.skip(f"no DU schema at {config.schema_path}; run `just stage-schema`")
+    return etree.XMLSchema(etree.parse(str(config.schema_path), PARSER))
