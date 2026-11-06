@@ -15,7 +15,7 @@ from typing import Any
 import httpx
 import pytest
 
-from support.clients import BorrowerClient, LenderClient
+from support.clients import BorrowerClient, LenderClient, reply
 from support.data import ABSENT_ID, complete, expires_in
 from support.settings import Settings
 
@@ -31,12 +31,6 @@ def new_grant(alice: BorrowerClient, client_id: str, version_id: int, **delta) -
     response = alice.create_grant(client_id, version_id, expires_in(**delta))
     assert response.status_code == 201
     return response.json()["id"]
-
-
-def reply(response: httpx.Response) -> tuple[int, bytes, dict[str, str]]:
-    """Everything a lender can see, except the time it was sent."""
-    headers = {k: v for k, v in response.headers.items() if k != "date"}
-    return response.status_code, response.content, headers
 
 
 @dataclass(frozen=True)

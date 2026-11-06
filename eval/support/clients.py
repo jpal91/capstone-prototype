@@ -99,6 +99,12 @@ class LenderClient(httpx.Client):
         return self.get(f"/lender/grants/{grant_id}/application")
 
 
+def reply(response: httpx.Response) -> tuple[int, bytes, dict[str, str]]:
+    """Everything a lender can see, except the time it was sent."""
+    headers = {k: v for k, v in response.headers.items() if k != "date"}
+    return response.status_code, response.content, headers
+
+
 def mock_lender_client(base_url: str) -> httpx.Client:
     """The mock lender's JSON routes (/api/lenders/{clientId}/...)."""
     return httpx.Client(base_url=base_url, timeout=TIMEOUT)
