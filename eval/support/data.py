@@ -57,14 +57,17 @@ def complete(**changes: dict[str, Any]) -> dict[str, Any]:
 
 
 def every_field() -> dict[str, Any]:
-    """COMPLETE with every optional field filled in, so more XML is emitted."""
+    """COMPLETE with every optional field filled in, so more XML is emitted.
+
+    Values differ between fields, so a mapper that swaps two of them is caught.
+    """
     draft = complete(
         borrower={"phoneNumber": "+15205550123", "email": "evan@example.com"},
         subjectProperty={
             "streetAddress": "300 Sample Rd",
-            "city": "Tucson",
-            "state": "AZ",
-            "zipCode": "85702",
+            "city": "Santa Fe",
+            "state": "NM",
+            "zipCode": "87501",
             "monthlyTaxes": "310.00",
             "monthlyHoi": "95.00",
             "occupancy": "SecondHome",

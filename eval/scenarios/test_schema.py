@@ -3,14 +3,7 @@ from lxml import etree  # ty: ignore
 
 from support.clients import BorrowerClient
 from support.data import complete, every_field
-from support.xml import MISMO, PARSER
-
-
-def fetch_finalized(alice: BorrowerClient, draft: dict) -> etree._Element:
-    version = alice.must_finalize(draft)
-    xml = alice.version_xml(version["id"])
-    assert xml.status_code == 200
-    return etree.fromstring(xml.content, PARSER)
+from support.xml import MISMO, fetch_finalized
 
 
 @pytest.mark.req("FR-03")
