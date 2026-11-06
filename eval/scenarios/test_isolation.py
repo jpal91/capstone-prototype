@@ -2,13 +2,12 @@
 
 import re
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
 
 from support.clients import BorrowerClient, LenderClient
-from support.data import complete, drop_nulls
+from support.data import ABSENT_ID, complete, drop_nulls, expires_in
 
 pytestmark = pytest.mark.req("NFR-08")
 
@@ -27,7 +26,6 @@ BORROWER_ROUTES = [
     ("POST", "/grants/{grant_id}/revoke"),
 ]
 NOT_BORROWER_ROUTES = {"/health", "/auth/login"}
-ABSENT_ID = 2**31 - 1  # the largest ID the database can hold, so unused
 
 each_borrower_route = pytest.mark.parametrize(("method", "route"), BORROWER_ROUTES)
 
@@ -44,8 +42,7 @@ class Owned:
 
 def own_version_and_grant(borrower: BorrowerClient) -> Owned:
     version = borrower.must_finalize(complete())
-    expires_at = (datetime.now(UTC) + timedelta(days=1)).isoformat()
-    grant = borrower.create_grant("lender-a", version["id"], expires_at)
+    grant = borrower.create_grant("lender-a", version["id"], expires_in(days=1))
     assert grant.status_code == 201
     return Owned(version["id"], grant.json()["id"])
 
@@ -147,7 +144,7 @@ def test_other_borrowers_version_looks_absent(
 
 
 def test_cannot_grant_other_borrowers_version(bob: BorrowerClient, alices: Owned):
-    expires_at = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+    expires_at = expires_in(days=1)
     before = ids(bob.get("/grants"))
 
     response = bob.create_grant("lender-a", alices.version_id, expires_at)

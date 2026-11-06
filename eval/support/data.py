@@ -1,7 +1,10 @@
 """Draft data for the scenarios. Synthetic (NFR-06)."""
 
 import copy
+from datetime import UTC, datetime, timedelta
 from typing import Any
+
+ABSENT_ID = 2**31 - 1  # the largest ID core's database can hold, so unused
 
 # A draft that passes core's finalize checks. The name marks data eval/ made.
 COMPLETE: dict[str, Any] = {
@@ -92,6 +95,11 @@ def every_field() -> dict[str, Any]:
         }
     )
     return draft
+
+
+def expires_in(**delta: float) -> str:
+    """An `expiresAt` value, relative to now: expires_in(days=1)."""
+    return (datetime.now(UTC) + timedelta(**delta)).isoformat()
 
 
 def drop_nulls(value: Any) -> Any:
