@@ -54,3 +54,16 @@ def complete(**changes: dict[str, Any]) -> dict[str, Any]:
     for section, values in changes.items():
         draft[section].update(values)
     return draft
+
+
+def drop_nulls(value: Any) -> Any:
+    """`value` without null dict entries: core fills in unset optional fields.
+
+    A null inside a list stays, so a broken row still fails a comparison.
+    """
+    if isinstance(value, dict):
+        return {k: drop_nulls(v) for k, v in value.items() if v is not None}
+    elif isinstance(value, list):
+        return [drop_nulls(item) for item in value]
+    else:
+        return value

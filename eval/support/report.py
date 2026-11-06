@@ -194,9 +194,9 @@ def generate_json_report(
             "requirementId": req.rid,
             "description": req.req_text,
             "totalNumberOfTests": len(results.outcomes),
-            "totalTestsPassed": len([
-                r for r in results.outcomes.values() if r == Outcome.PASSED
-            ]),
+            "totalTestsPassed": len(
+                [r for r in results.outcomes.values() if r == Outcome.PASSED]
+            ),
             "overallResult": results.overall_result,
             "verification": req.verification,
         }
@@ -217,11 +217,13 @@ def generate_json_report(
                 json_out["totalTestsSkipped"] += 1
 
     for name, out in res_map.items():
-        json_out["tests"].append({
-            "testid": name,
-            "outcome": str(out),
-            "requirements": sorted(marker_map[name]),
-        })
+        json_out["tests"].append(
+            {
+                "testid": name,
+                "outcome": str(out),
+                "requirements": sorted(marker_map[name]),
+            }
+        )
 
     json_out["tables"] = table_mapping
     return json_out
@@ -235,7 +237,7 @@ def generate_table(table: str, rows: list[dict[str, Any]]) -> str:
         case "NFR":
             out += "### Non-functional and Security Requirements\n\n"
         case "L":
-            out += "### Known Limitations to Demonstrate\n\n*A result of `passed` means the limiation was demonstrated*\n\n"
+            out += "### Known Limitations to Demonstrate\n\n*A result of `passed` means the limitation was demonstrated*\n\n"
 
     out += "| ID | Result | Tests passed | "
     if table == "L":
