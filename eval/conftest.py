@@ -89,9 +89,12 @@ def mock_lender(config: settings.Settings) -> Iterator[httpx.Client]:
         yield client
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session", autouse=True)
 def du_schema(config: settings.Settings) -> etree.XMLSchema:
-    """The DU wrapper. It's licensed, so a missing copy skips what needs it."""
+    """The DU wrapper. FR-03 can't be shown without it, so stop the run if missing."""
     if not config.schema_path.is_file():
-        pytest.skip(f"no DU schema at {config.schema_path}; run `just stage-schema`")
+        pytest.exit(
+            f"eval: no DU schema at {config.schema_path}; run `just stage-schema`",
+            returncode=3,
+        )
     return etree.XMLSchema(etree.parse(str(config.schema_path), PARSER))
