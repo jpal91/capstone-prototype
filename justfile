@@ -68,7 +68,6 @@ docker-restart: docker-down docker-up
 # write eval/results/. With arguments, they replace --report and go to pytest, so
 # a partial run (`just eval -k draft`) can't overwrite the full report.
 eval *args:
-    @test -d {{ staged }} || just stage-schema
     mkdir -p ./eval/results
     docker compose --profile eval build eval
     EVAL_UID=$(id -u) EVAL_GID=$(id -g) docker compose --profile eval run --rm eval {{ args }}

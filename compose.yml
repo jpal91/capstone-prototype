@@ -64,6 +64,9 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     environment: *core-env
+    volumes:
+      # Fills du-schema from the image on first use, for eval to read.
+      - du-schema:/app/schema:ro
     depends_on:
       seed:
         condition: service_completed_successfully
@@ -126,9 +129,9 @@ services:
       retries: 15
 
   # The scenario suite (eval/). Only runs when asked for: `just eval`. Unlike the
-  # other services it reads core's database directly, for the audit checks. The
-  # schema and requirements are mounted, so the image holds no MISMO files, and
-  # create_host_path stops Docker creating a root-owned folder if one is missing.
+  # other services it reads core's database directly, for the audit checks. Its
+  # image holds no MISMO files: it reads the DU schema core was built with, from
+  # the du-schema volume, so running it needs nothing but Docker (NFR-07).
   eval:
     profiles: [eval]
     build:
@@ -144,13 +147,9 @@ services:
       CORE_DATABASE_URL: postgresql://core:core@db:5432/core
       MISMO_SCHEMA: /schema/DU_Wrapper_3.4.0_B324.xsd
       REQUIREMENTS_PATH: /requirements.md
+    # create_host_path stops Docker making a root-owned folder if one is missing.
     volumes:
-      - type: bind
-        source: ./mismo/schema/staged
-        target: /schema
-        read_only: true
-        bind:
-          create_host_path: false
+      - du-schema:/schema:ro
       - type: bind
         source: ./docs/requirements.md
         target: /requirements.md
@@ -168,3 +167,6 @@ services:
       mock-lender:
         condition: service_healthy
     restart: "no"
+
+volumes:
+  du-schema:

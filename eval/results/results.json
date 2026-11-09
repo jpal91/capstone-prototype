@@ -1,0 +1,1350 @@
+{
+  "testTimestamp": "2026-11-06T21:43:19+00:00",
+  "totalTestsRun": 159,
+  "totalTestsPassed": 159,
+  "totalTestsFailed": 0,
+  "totalTestsSkipped": 0,
+  "totalTestsError": 0,
+  "exitStatus": 0,
+  "tests": [
+    {
+      "testid": "scenarios/test_audit.py::test_each_action_adds_one_entry",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_expired_denial_records_its_reason",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_unused_id_denial_records_its_reason",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_refused_actions_add_no_entries",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_last_fetched_is_the_logged_fetch_time",
+      "outcome": "passed",
+      "requirements": [
+        "FR-08",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_whole_chain_verifies",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[update-audit]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[delete-audit]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[truncate-audit]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[update-version]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[delete-version]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[truncate-version]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[extend-grant]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[unrevoke-grant]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-06"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_database_refuses_changes_to_records[delete-grant]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-06"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_core_role_can_disable_the_trigger",
+      "outcome": "passed",
+      "requirements": [
+        "L-06"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_edited_entry_is_detected[detail]",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_edited_entry_is_detected[timestamp]",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_edited_entry_is_detected[action]",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_edited_entry_is_detected[lender]",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_edited_entry_is_detected[stored-hash]",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_edited_entry_with_fresh_hash_is_detected_by_the_next",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_deleted_entry_is_detected",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_deleted_first_entry_is_detected",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_reordered_entries_are_detected",
+      "outcome": "passed",
+      "requirements": [
+        "L-05",
+        "NFR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_deleting_the_newest_entries_goes_undetected",
+      "outcome": "passed",
+      "requirements": [
+        "L-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_audit.py::test_rewriting_the_chain_goes_undetected",
+      "outcome": "passed",
+      "requirements": [
+        "L-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_records_lender_version_and_expiry",
+      "outcome": "passed",
+      "requirements": [
+        "FR-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_only_granted_lenders_can_fetch",
+      "outcome": "passed",
+      "requirements": [
+        "FR-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_stays_on_its_version",
+      "outcome": "passed",
+      "requirements": [
+        "FR-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_rejects_bad_expiry[in-the-past]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_rejects_bad_expiry[no-timezone]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_rejects_unknown_lender",
+      "outcome": "passed",
+      "requirements": [
+        "FR-05"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_revoke_stops_only_that_grant",
+      "outcome": "passed",
+      "requirements": [
+        "FR-06"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_revoking_twice_changes_nothing",
+      "outcome": "passed",
+      "requirements": [
+        "FR-06"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_active_grant_returns_the_versions_exact_bytes",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_own_grant_denied_when_no_longer_active[revoked]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_own_grant_denied_when_no_longer_active[expired]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_other_lenders_grant_denied[active]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07",
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_other_lenders_grant_denied[revoked]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07",
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_other_lenders_grant_denied[expired]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07",
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_unused_id_denied_the_same_for_each_lender",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_lender_list_shows_only_its_own_active_grants",
+      "outcome": "passed",
+      "requirements": [
+        "FR-07",
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_bad_lender_credentials_refused[wrong-secret]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_bad_lender_credentials_refused[another-lenders-secret]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_bad_lender_credentials_refused[unknown-client]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_lender_routes_refuse_no_credentials",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_lender_routes_refuse_borrower_session",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_list_shows_status[active]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_list_shows_status[revoked]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_grant_list_shows_status[expired]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_consent.py::test_last_fetched_follows_successful_fetches",
+      "outcome": "passed",
+      "requirements": [
+        "FR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_draft.py::test_saves_and_reads_back_draft",
+      "outcome": "passed",
+      "requirements": [
+        "FR-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_draft.py::test_edit_replaces_saved_value",
+      "outcome": "passed",
+      "requirements": [
+        "FR-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_environment.py::test_runs_in_a_container_on_the_compose_network",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-07"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_draft_rejects_excluded_field[None-ssn]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_draft_rejects_excluded_field[borrower-ssn]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_draft_rejects_excluded_field[borrower-taxpayerId]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_draft_rejects_excluded_field[borrower-race]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_draft_rejects_excluded_field[borrower-ethnicity]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_draft_rejects_excluded_field[borrower-sex]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_api_schema_has_no_excluded_fields",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01",
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_emitted_xml_has_no_disallowed_elements",
+      "outcome": "passed",
+      "requirements": [
+        "L-02",
+        "NFR-01",
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_xml_check_finds_planted_element[{http://www.mismo.org/residential/2009/schemas}TaxpayerIdentifierValue]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_xml_check_finds_planted_element[{http://www.mismo.org/residential/2009/schemas}HMDAEthnicityType]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_xml_check_finds_planted_element[{http://www.mismo.org/residential/2009/schemas}GOVERNMENT_MONITORING]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_xml_check_finds_planted_element[{http://www.mismo.org/residential/2009/schemas}EXTENSION]",
+      "outcome": "passed",
+      "requirements": [
+        "L-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_xml_check_finds_planted_element[{urn:example:other}LoanData]",
+      "outcome": "passed",
+      "requirements": [
+        "L-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_core_tables_have_no_excluded_columns",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01",
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_stored_drafts_have_no_excluded_fields",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01",
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_exclusions.py::test_stored_versions_have_no_disallowed_elements",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-01",
+        "NFR-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_list_covers_every_borrower_route",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[POST-/auth/logout]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[GET-/draft]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[PUT-/draft]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[POST-/draft/finalize]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[GET-/versions]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[GET-/versions/{version_id}/xml]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[GET-/lenders]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[GET-/grants]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[POST-/grants]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_no_session[POST-/grants/{grant_id}/revoke]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[POST-/auth/logout]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[GET-/draft]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[PUT-/draft]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[POST-/draft/finalize]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[GET-/versions]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[GET-/versions/{version_id}/xml]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[GET-/lenders]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[GET-/grants]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[POST-/grants]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_unknown_token[POST-/grants/{grant_id}/revoke]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[POST-/auth/logout]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[GET-/draft]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[PUT-/draft]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[POST-/draft/finalize]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[GET-/versions]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[GET-/versions/{version_id}/xml]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[GET-/lenders]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[GET-/grants]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[POST-/grants]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_route_refuses_lender_credentials[POST-/grants/{grant_id}/revoke]",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_drafts_are_separate",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_lists_show_only_own_records",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_finalize_adds_only_to_own_versions",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_other_borrowers_version_looks_absent",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_cannot_grant_other_borrowers_version",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_isolation.py::test_cannot_revoke_other_borrowers_grant",
+      "outcome": "passed",
+      "requirements": [
+        "NFR-08"
+      ]
+    },
+    {
+      "testid": "scenarios/test_lender_copies.py::test_copy_outlives_revocation",
+      "outcome": "passed",
+      "requirements": [
+        "L-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_lender_copies.py::test_revoking_before_any_fetch_leaves_no_copy",
+      "outcome": "passed",
+      "requirements": [
+        "L-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_lender_copies.py::test_revoking_one_lender_leaves_the_others_access_and_copy",
+      "outcome": "passed",
+      "requirements": [
+        "FR-06",
+        "L-01"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[borrower.firstName]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[borrower.lastName]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[borrower.dateOfBirth]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[borrower.phoneNumber]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[borrower.email]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[address.streetAddress]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[address.city]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[address.state]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[address.zipCode]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[address.ownStatus]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[address.monthsAtAddress]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.streetAddress]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.city]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.state]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.zipCode]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.monthlyTaxes]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.monthlyHoi]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.propertyValue]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[subjectProperty.occupancy]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[income.employerName]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[income.monthlyIncome]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[income.startDate]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[income.position]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[loan.loanTermMonths]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[loan.loanProgram]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[loan.loanAmount]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[loan.loanPurpose]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[assets.0.institutionName]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[assets.0.assetType]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[assets.0.amount]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.0.institutionName]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.0.liabilityType]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.0.monthlyAmount]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.0.balance]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[assets.1.institutionName]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[assets.1.assetType]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[assets.1.amount]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.1.institutionName]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.1.liabilityType]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.1.monthlyAmount]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.1.balance]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_field_reaches_its_mismo_path[liabilities.1.monthsRemaining]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_every_draft_field_has_a_path",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_mapping.py::test_purchase_draft_reaches_its_mismo_paths",
+      "outcome": "passed",
+      "requirements": [
+        "FR-04"
+      ]
+    },
+    {
+      "testid": "scenarios/test_schema.py::test_finalized_version_validates[required-fields]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-03",
+        "L-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_schema.py::test_finalized_version_validates[every-field]",
+      "outcome": "passed",
+      "requirements": [
+        "FR-03",
+        "L-02"
+      ]
+    },
+    {
+      "testid": "scenarios/test_schema.py::test_schema_check_rejects_invalid_xml",
+      "outcome": "passed",
+      "requirements": [
+        "FR-03"
+      ]
+    },
+    {
+      "testid": "scenarios/test_versions.py::test_finalize_is_immutable",
+      "outcome": "passed",
+      "requirements": [
+        "FR-02"
+      ]
+    }
+  ],
+  "tables": {
+    "FR": [
+      {
+        "requirementId": "FR-01",
+        "description": "The borrower can create, edit, and save a draft covering the supported URLA subset: borrower information, current address, employment and income, assets, liabilities, and property and loan information.",
+        "totalNumberOfTests": 2,
+        "totalTestsPassed": 2,
+        "overallResult": "passed",
+        "verification": "Scenario creates and updates a draft"
+      },
+      {
+        "requirementId": "FR-02",
+        "description": "Finalizing a draft produces an immutable version: MISMO v3.4 XML stored with its SHA-256 hash. Editing afterward creates a new version and never changes an existing one.",
+        "totalNumberOfTests": 4,
+        "totalTestsPassed": 4,
+        "overallResult": "passed",
+        "verification": "Finalize twice; first version's bytes and hash unchanged; the database refuses changes to a stored version"
+      },
+      {
+        "requirementId": "FR-03",
+        "description": "Every finalized version validates against Fannie Mae's DU wrapper schema for MISMO v3.4 (Build 324), so a lender receives the format its systems already import.",
+        "totalNumberOfTests": 3,
+        "totalTestsPassed": 3,
+        "overallResult": "passed",
+        "verification": "`eval/` validates a required-fields draft and an every-field draft against the staged DU wrapper, with a control that invalid XML is rejected; `core` itself validates every version at finalize"
+      },
+      {
+        "requirementId": "FR-04",
+        "description": "Emitted XML round-trips: parsing it back yields the same field values as the source draft.",
+        "totalNumberOfTests": 44,
+        "totalTestsPassed": 44,
+        "overallResult": "passed",
+        "verification": "`eval/` checks each draft field is at its expected MISMO path in the emitted XML. `mismo`'s tests cover parsing back with `from_xml`, and Fannie Mae's DU test case DI-C01 reading and re-emitting"
+      },
+      {
+        "requirementId": "FR-05",
+        "description": "The borrower can grant a specific lender access to a specific version, with an expiry.",
+        "totalNumberOfTests": 7,
+        "totalTestsPassed": 7,
+        "overallResult": "passed",
+        "verification": "Grant A and B, not C; C is denied"
+      },
+      {
+        "requirementId": "FR-06",
+        "description": "The borrower can revoke any grant independently; other grants are unaffected.",
+        "totalNumberOfTests": 5,
+        "totalTestsPassed": 5,
+        "overallResult": "passed",
+        "verification": "Revoke A; A denied, B still allowed"
+      },
+      {
+        "requirementId": "FR-07",
+        "description": "A lender can fetch an application only with a grant that is its own, not revoked, and not expired. The response is exactly the bound version's bytes (hash matches).",
+        "totalNumberOfTests": 11,
+        "totalTestsPassed": 11,
+        "overallResult": "passed",
+        "verification": "Consent matrix: own/other lender \u00d7 active/revoked/expired; hash check on success; every denial returns the same 404, and its audit entry records the reason"
+      },
+      {
+        "requirementId": "FR-08",
+        "description": "The borrower can see every grant's status and when each lender last fetched.",
+        "totalNumberOfTests": 5,
+        "totalTestsPassed": 5,
+        "overallResult": "passed",
+        "verification": "Scenario reads grant list after fetches and denials; `lastFetchedAt` matches the audit log's fetch time"
+      },
+      {
+        "requirementId": "FR-09",
+        "description": "When a grant is created, the lender receives a notification that carries no application data.",
+        "totalNumberOfTests": 0,
+        "totalTestsPassed": 0,
+        "overallResult": "not tested",
+        "verification": "Notification received; payload has no application fields"
+      },
+      {
+        "requirementId": "FR-10",
+        "description": "A demo lender view shows what each mock lender has received and its current access status.",
+        "totalNumberOfTests": 0,
+        "totalTestsPassed": 0,
+        "overallResult": "not tested",
+        "verification": "Screenshot (Ch. 7); not automated. `mock-lender`'s `/api` routes let `eval/` check what each lender holds"
+      }
+    ],
+    "NFR": [
+      {
+        "requirementId": "NFR-01",
+        "description": "The SSN / taxpayer identifier is never collected, stored, or emitted.",
+        "totalNumberOfTests": 9,
+        "totalTestsPassed": 9,
+        "overallResult": "passed",
+        "verification": "Draft API rejects such fields with a 422 and doesn't define them; no such name in `core`'s columns, stored drafts, stored versions, or emitted XML. Checks names, not what's typed into a free-text field"
+      },
+      {
+        "requirementId": "NFR-02",
+        "description": "HMDA demographic information is not collected.",
+        "totalNumberOfTests": 10,
+        "totalTestsPassed": 10,
+        "overallResult": "passed",
+        "verification": "Draft API rejects such fields with a 422 and doesn't define them; no such name in `core`'s columns, stored drafts, stored versions, or emitted XML, and no extension elements"
+      },
+      {
+        "requirementId": "NFR-03",
+        "description": "Each lender authenticates with its own credentials; one lender's credentials cannot read another lender's grants.",
+        "totalNumberOfTests": 9,
+        "totalTestsPassed": 9,
+        "overallResult": "passed",
+        "verification": "Lender B uses its credentials on Lender A's grant \u2192 denied; a wrong secret, another lender's secret, an unknown client, or a borrower session \u2192 401"
+      },
+      {
+        "requirementId": "NFR-04",
+        "description": "Every finalize, grant, revoke, fetch, and denied fetch adds an entry to an append-only audit log in which each entry stores the previous entry's hash; the chain verifies end to end.",
+        "totalNumberOfTests": 18,
+        "totalTestsPassed": 18,
+        "overallResult": "passed",
+        "verification": "Run scenario, check entry count per action, verify chain; tamper with one row \u2192 verification fails"
+      },
+      {
+        "requirementId": "NFR-05",
+        "description": "Stored version XML is encrypted at rest with a key supplied through the environment.",
+        "totalNumberOfTests": 0,
+        "totalTestsPassed": 0,
+        "overallResult": "not tested",
+        "verification": "Raw database column is not readable XML; fetch still returns the original bytes"
+      },
+      {
+        "requirementId": "NFR-06",
+        "description": "All data is synthetic.",
+        "totalNumberOfTests": 0,
+        "totalTestsPassed": 0,
+        "overallResult": "not tested",
+        "verification": "Review; not automated"
+      },
+      {
+        "requirementId": "NFR-07",
+        "description": "The whole system starts with `docker compose up --build` and is removed with `docker compose down -v`; `eval/` runs in the same environment.",
+        "totalNumberOfTests": 1,
+        "totalTestsPassed": 1,
+        "overallResult": "passed",
+        "verification": "`just eval-fresh` runs the suite in compose on a rebuilt, empty stack, and a test confirms it's in a container on the compose network. That test can't see how the stack was started, so Ch. 8 reports the run itself"
+      },
+      {
+        "requirementId": "NFR-08",
+        "description": "Every borrower route requires a valid session, and a borrower can read or change only their own draft, versions, and grants.",
+        "totalNumberOfTests": 37,
+        "totalTestsPassed": 37,
+        "overallResult": "passed",
+        "verification": "No session, an unknown token, or lender credentials \u2192 401 on every borrower route; borrower B on A's versions or grants \u2192 the same 404 as an unused ID. `/draft` takes no ID, so B can't address A's draft; a scenario shows the two stay separate"
+      }
+    ],
+    "L": [
+      {
+        "requirementId": "L-01",
+        "description": "Revocation stops future fetches but cannot take back a copy a lender already fetched.",
+        "totalNumberOfTests": 3,
+        "totalTestsPassed": 3,
+        "overallResult": "passed",
+        "verification": "After revoking A, `mock-lender` still holds A's earlier copy (`GET /api/lenders/lender-a/copies`), while A's next fetch gets the uniform 404"
+      },
+      {
+        "requirementId": "L-02",
+        "description": "Output is valid against the DU schema but not DU-submittable: the SSN is absent, and no ULAD/DU extension data (e.g., HMDA demographics, which NFR-02 excludes) is emitted.",
+        "totalNumberOfTests": 5,
+        "totalTestsPassed": 5,
+        "overallResult": "passed",
+        "verification": "`eval/` shows the XML is valid and has no SSN, HMDA, or extension elements. It is never submitted to DU; report this alongside the FR-03 results"
+      },
+      {
+        "requirementId": "L-03",
+        "description": "Single borrower only; no co-borrower.",
+        "totalNumberOfTests": 0,
+        "totalTestsPassed": 0,
+        "overallResult": "not tested",
+        "verification": "Scope statement; not automated"
+      },
+      {
+        "requirementId": "L-04",
+        "description": "Employment income is recorded as a wage (`CURRENT_INCOME_ITEM`, `IncomeType` Base). A self-employed borrower with a 25% or greater ownership share reports a single monthly income or loss (`EmploymentMonthlyIncomeAmount`) on the URLA instead, which the subset cannot represent; importing such a file is rejected rather than relabeled as a wage. Only base pay is imported: other income items in a lender's file (overtime, bonus, dividends, ...) are ignored, so the imported income can be lower than the file states.",
+        "totalNumberOfTests": 0,
+        "totalTestsPassed": 0,
+        "overallResult": "not tested",
+        "verification": "`mismo`'s tests, not `eval/`: `from_xml` rejects DU test case DI-CL01 with a clear error; reading DI-C01 keeps its Base item and drops its six other income items"
+      },
+      {
+        "requirementId": "L-05",
+        "description": "The audit hash chain detects alteration, deletion, or reordering of earlier entries, but not deletion of the newest entries or a complete rewrite of the chain by someone with write access to the database. Anchoring the chain head outside the database (or a Merkle/transparency log) is future work.",
+        "totalNumberOfTests": 11,
+        "totalTestsPassed": 11,
+        "overallResult": "passed",
+        "verification": "Truncate the newest entries, or rewrite the chain with fresh hashes \u2192 verification still passes"
+      },
+      {
+        "requirementId": "L-06",
+        "description": "`core` connects to Postgres as the owner of the audit table (a superuser in the dev image), so a compromised `core` could disable the append-only trigger and rewrite the log; the trigger only stops accidental or casual edits, and the hash chain is what detects tampering. A production deployment would connect as a role limited to `INSERT` and `SELECT` on the audit table.",
+        "totalNumberOfTests": 1,
+        "totalTestsPassed": 1,
+        "overallResult": "passed",
+        "verification": "The NFR-04 tamper test disables the trigger as `core`'s own database user before editing a row"
+      }
+    ]
+  }
+}

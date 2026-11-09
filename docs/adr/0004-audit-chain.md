@@ -35,7 +35,8 @@ directly in the database.
    `TRUNCATE` on `audit_event` (the same trigger protects `version`).
 6. **Verification is a function**, `core.audit.verify_chain`, which
    recomputes every hash and reports the first bad sequence number. There is
-   no route for it; an independent verifier is planned in `eval/`.
+   no route for it; `eval/support/audit.py` is a separate verifier, which shares
+   only the entry format.
 7. **The log is also a data source.** A grant's `lastFetchedAt` is the time of
    its newest `fetch` entry (FR-08), so the borrower sees the same record an
    auditor would.
